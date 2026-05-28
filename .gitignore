@@ -1,0 +1,23 @@
+# ===== BACKEND =====
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/**/*.class
+backend/**/*.jar
+!backend/mvnw
+!backend/mvnw.cmd
+
+# ===== MOBILE =====
+mobile/node_modules/
+mobile/.expo/
+mobile/dist/
+mobile/build/
+mobile/.env
+
+# ===== STORAGE =====
+storage/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+*.log
+*.tmp

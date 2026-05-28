@@ -1,0 +1,68 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: sprachreise-api
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/sprachreise?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: ""
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+
+  sql:
+    init:
+      mode: never
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:sprachreise@gmail.com}
+    password: ${MAIL_PASSWORD:your-app-password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:SprachReise2026SecretKeyForJWTTokenSigningMustBeLongEnough64chars!!}
+  access-token-expiration: 900000
+  refresh-token-expiration: 604800000
+
+# Agora Configuration
+agora:
+  app-id: ${AGORA_APP_ID:your-agora-app-id}
+  app-certificate: ${AGORA_APP_CERTIFICATE:your-agora-app-certificate}
+
+# Stripe Configuration
+stripe:
+  secret-key: ${STRIPE_SECRET_KEY:sk_test_your-stripe-secret-key}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_your-webhook-secret}
+
+# Storage
+storage:
+  upload-dir: ${STORAGE_PATH:C:/xampp/htdocs/SprachReise/storage}
+
+# Logging
+logging:
+  level:
+    com.sprachreise: DEBUG
+    org.springframework.security: INFO
