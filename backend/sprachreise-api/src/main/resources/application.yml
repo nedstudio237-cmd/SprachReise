@@ -61,6 +61,11 @@ stripe:
 storage:
   upload-dir: ${STORAGE_PATH:C:/xampp/htdocs/SprachReise/storage}
 
+# Anthropic Claude AI
+anthropic:
+  api:
+    key: ${ANTHROPIC_API_KEY:}
+
 # Logging
 logging:
   level:
