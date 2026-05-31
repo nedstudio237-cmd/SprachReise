@@ -10,6 +10,7 @@ public class CourseDto {
     public String description;
     public String theme;
     public Integer videoDurationSec;
+    public String pdfPath;
     public String status;
     public Integer viewCount;
     public String trainerName;
@@ -23,6 +24,7 @@ public class CourseDto {
         dto.description = c.getDescription();
         dto.theme = c.getTheme();
         dto.videoDurationSec = c.getVideoDurationSec();
+        dto.pdfPath = c.getPdfPath();
         dto.status = c.getStatus().name();
         dto.viewCount = c.getViewCount();
         if (c.getTrainer() != null) {
