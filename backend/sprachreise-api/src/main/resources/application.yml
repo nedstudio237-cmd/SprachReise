@@ -57,6 +57,7 @@ agora:
 # Stripe Configuration
 stripe:
   secret-key: ${STRIPE_SECRET_KEY:sk_test_your-stripe-secret-key}
+  publishable-key: ${STRIPE_PUBLISHABLE_KEY:pk_test_your-stripe-publishable-key}
   webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_your-webhook-secret}
 
 # Storage
