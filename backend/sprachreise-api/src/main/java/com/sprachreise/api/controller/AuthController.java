@@ -56,8 +56,8 @@ public class AuthController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 new AuthResponse(accessToken, refreshToken,
-                        user.getEmail(), user.getFirstName(), user.getLastName(),
-                        user.getRole().name())
+                        user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(),
+                        user.getRole().name(), user.getPhotoUrl())
         );
     }
 
@@ -79,8 +79,8 @@ public class AuthController {
 
         return ResponseEntity.ok(
                 new AuthResponse(accessToken, refreshToken,
-                        user.getEmail(), user.getFirstName(), user.getLastName(),
-                        user.getRole().name())
+                        user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(),
+                        user.getRole().name(), user.getPhotoUrl())
         );
     }
 }

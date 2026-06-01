@@ -11,7 +11,11 @@ public class SessionDto {
     public Integer durationMinutes;
     public String status;
     public String trainerName;
+    public Long trainerId;
     public String agoraChannel;
+    public String recordingPath;
+    public String attachmentPdf;
+    public Boolean recordEnabled;
 
     public static SessionDto from(StreamingSession s) {
         SessionDto dto = new SessionDto();
@@ -23,8 +27,12 @@ public class SessionDto {
         dto.durationMinutes = s.getDurationMinutes();
         dto.status = s.getStatus().name();
         dto.agoraChannel = s.getAgoraChannel();
+        dto.recordingPath = s.getRecordingPath();
+        dto.attachmentPdf = s.getAttachmentPdf();
+        dto.recordEnabled = s.getRecordEnabled();
         if (s.getTrainer() != null) {
             dto.trainerName = s.getTrainer().getFirstName() + " " + s.getTrainer().getLastName();
+            dto.trainerId = s.getTrainer().getId();
         }
         return dto;
     }

@@ -387,4 +387,35 @@ public class PdfGeneratorService {
         c.add(new Paragraph(value).setFont(fontBold).setFontSize(13).setFontColor(C_DEEP));
         return c;
     }
+
+    // ── Résultats QCM (PDF export pour formateurs) ────────────────────────────
+    public String generateQcmResultsPdf(
+            com.sprachreise.api.entity.Qcm qcm,
+            java.util.List<com.sprachreise.api.entity.QcmAttempt> attempts,
+            java.util.Map<Long, String> learnerNames) throws IOException {
+
+        String filename  = "qcm_results_" + qcm.getId() + ".pdf";
+        String pdfDir    = storageDir + "/qcm";
+        new File(pdfDir).mkdirs();
+        String fullPath  = pdfDir + "/" + filename;
+
+        try (PdfWriter writer = new PdfWriter(fullPath);
+             PdfDocument pdf = new PdfDocument(writer);
+             Document doc = new Document(pdf, PageSize.A4)) {
+
+            PdfFont fontBold = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD, PdfEncodings.WINANSI, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
+            PdfFont fontReg  = PdfFontFactory.createFont(StandardFonts.HELVETICA, PdfEncodings.WINANSI, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
+
+            doc.add(new Paragraph("Résultats QCM — " + qcm.getTitle())
+                    .setFont(fontBold).setFontSize(16).setFontColor(C_DEEP).setMarginBottom(20));
+
+            for (com.sprachreise.api.entity.QcmAttempt a : attempts) {
+                String name = learnerNames.getOrDefault(a.getLearnerId(), "Apprenant #" + a.getLearnerId());
+                String line = name + "  —  " + a.getCorrectAnswers() + "/" + a.getTotalQuestions()
+                        + "  (" + a.getScore().setScale(0, java.math.RoundingMode.HALF_UP) + "%)";
+                doc.add(new Paragraph(line).setFont(fontReg).setFontSize(11).setFontColor(C_DEEP));
+            }
+        }
+        return "qcm/" + filename;
+    }
 }

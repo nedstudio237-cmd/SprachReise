@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface QcmRepository extends JpaRepository<Qcm, Long> {
     List<Qcm> findByLevelIdOrderByIdAsc(Long levelId);
+    List<Qcm> findByCreatedByOrderByIdDesc(Long createdBy);
 }

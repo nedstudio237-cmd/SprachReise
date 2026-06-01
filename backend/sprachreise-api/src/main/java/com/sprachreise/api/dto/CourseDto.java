@@ -12,8 +12,12 @@ public class CourseDto {
     public Integer videoDurationSec;
     public String videoPath;
     public String pdfPath;
+    public Long pdfSizeBytes;
     public String status;
     public Integer viewCount;
+    public String publishAt;
+    public String createdAt;
+    public Long trainerId;
     public String trainerName;
 
     public static CourseDto from(Course c, String levelCode) {
@@ -27,9 +31,13 @@ public class CourseDto {
         dto.videoDurationSec = c.getVideoDurationSec();
         dto.videoPath = c.getVideoPath();
         dto.pdfPath = c.getPdfPath();
+        dto.pdfSizeBytes = c.getPdfSizeBytes();
         dto.status = c.getStatus().name();
         dto.viewCount = c.getViewCount();
+        dto.publishAt = c.getPublishAt() != null ? c.getPublishAt().toString() : null;
+        dto.createdAt = c.getCreatedAt() != null ? c.getCreatedAt().toString() : null;
         if (c.getTrainer() != null) {
+            dto.trainerId = c.getTrainer().getId();
             dto.trainerName = c.getTrainer().getFirstName() + " " + c.getTrainer().getLastName();
         }
         return dto;

@@ -32,11 +32,17 @@ public class Course {
     @Column(name = "pdf_path")
     private String pdfPath;
 
+    @Column(name = "pdf_size_bytes")
+    private Long pdfSizeBytes;
+
     @Enumerated(EnumType.STRING)
     private CourseStatus status = CourseStatus.DRAFT;
 
     @Column(name = "view_count")
     private Integer viewCount = 0;
+
+    @Column(name = "publish_at")
+    private LocalDateTime publishAt;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -52,7 +58,22 @@ public class Course {
     public String getVideoPath() { return videoPath; }
     public Integer getVideoDurationSec() { return videoDurationSec; }
     public String getPdfPath() { return pdfPath; }
+    public Long getPdfSizeBytes() { return pdfSizeBytes; }
     public CourseStatus getStatus() { return status; }
     public Integer getViewCount() { return viewCount; }
+    public LocalDateTime getPublishAt() { return publishAt; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+
+    public void setTrainer(User trainer) { this.trainer = trainer; }
+    public void setLevelId(Long levelId) { this.levelId = levelId; }
+    public void setTitle(String title) { this.title = title; }
+    public void setDescription(String description) { this.description = description; }
+    public void setTheme(String theme) { this.theme = theme; }
+    public void setVideoPath(String videoPath) { this.videoPath = videoPath; }
+    public void setVideoDurationSec(Integer videoDurationSec) { this.videoDurationSec = videoDurationSec; }
+    public void setPdfPath(String pdfPath) { this.pdfPath = pdfPath; }
+    public void setPdfSizeBytes(Long pdfSizeBytes) { this.pdfSizeBytes = pdfSizeBytes; }
+    public void setStatus(CourseStatus status) { this.status = status; }
+    public void setViewCount(Integer viewCount) { this.viewCount = viewCount; }
+    public void setPublishAt(LocalDateTime publishAt) { this.publishAt = publishAt; }
 }

@@ -22,8 +22,17 @@ public class QcmChoice {
     private String explanation;
 
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
     public QcmQuestion getQuestion() { return question; }
+    public void setQuestion(QcmQuestion question) { this.question = question; }
+
     public String getChoiceText() { return choiceText; }
+    public void setChoiceText(String choiceText) { this.choiceText = choiceText; }
+
     public Boolean getIsCorrect() { return isCorrect; }
+    public void setIsCorrect(Boolean isCorrect) { this.isCorrect = isCorrect; }
+
     public String getExplanation() { return explanation; }
+    public void setExplanation(String explanation) { this.explanation = explanation; }
 }

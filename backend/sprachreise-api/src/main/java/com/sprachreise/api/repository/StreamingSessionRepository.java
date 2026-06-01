@@ -13,4 +13,9 @@ public interface StreamingSessionRepository extends JpaRepository<StreamingSessi
 
     @Query("SELECT s FROM StreamingSession s WHERE s.levelId = :levelId AND s.status IN ('SCHEDULED','LIVE') ORDER BY s.scheduledStart ASC")
     List<StreamingSession> findByLevelId(Long levelId);
+
+    @Query("SELECT s FROM StreamingSession s WHERE s.trainer.id = :trainerId AND s.status IN ('SCHEDULED','LIVE') ORDER BY s.scheduledStart ASC")
+    List<StreamingSession> findUpcomingByTrainerId(Long trainerId);
+
+    List<StreamingSession> findByTrainerIdOrderByScheduledStartDesc(Long trainerId);
 }
