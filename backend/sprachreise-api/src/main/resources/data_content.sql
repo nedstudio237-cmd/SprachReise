@@ -5,12 +5,13 @@
 
 USE sprachreise;
 
--- Supprime l'ancien contenu demo pour le remplacer par du vrai contenu
-DELETE FROM qcm_attempts;
-DELETE FROM qcm_choices;
-DELETE FROM qcm_questions;
-DELETE FROM qcms;
-DELETE FROM courses;
+-- Supprime l'ancien contenu et remet les auto_increment à 1
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE qcm_attempts;
+TRUNCATE TABLE qcm_choices;
+TRUNCATE TABLE qcm_questions;
+TRUNCATE TABLE qcms;
+TRUNCATE TABLE courses;
 
 -- ============================================================
 -- COURSES — 4 cours par niveau (24 au total)
@@ -858,3 +859,5 @@ INSERT INTO qcm_choices (question_id, choice_text, is_correct, explanation) VALU
 (141, 'La volonté de puissance', FALSE, 'La volonté de puissance est de Nietzsche'),
 (141, 'La déconstruction', FALSE, 'La déconstruction est de Jacques Derrida (philosophe français)'),
 (141, 'L''herméneutique de la méfiance', FALSE, 'L''herméneutique de la méfiance est de Paul Ricœur');
+
+SET FOREIGN_KEY_CHECKS = 1;

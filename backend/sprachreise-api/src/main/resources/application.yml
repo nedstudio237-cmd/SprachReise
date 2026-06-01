@@ -6,7 +6,7 @@ spring:
     name: sprachreise-api
 
   datasource:
-    url: jdbc:mysql://localhost:3306/sprachreise?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/sprachreise?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&useUnicode=true
     username: root
     password: ""
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -64,7 +64,7 @@ storage:
 # Anthropic Claude AI
 anthropic:
   api:
-    key: ${ANTHROPIC_API_KEY:}
+    key: ${ANTHROPIC_API_KEY}
 
 # Logging
 logging:
