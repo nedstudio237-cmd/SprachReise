@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: sprachreise-api
+  profiles:
+    active: local
 
   datasource:
     url: jdbc:mysql://localhost:3306/sprachreise?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&useUnicode=true
@@ -61,10 +63,10 @@ stripe:
 storage:
   upload-dir: ${STORAGE_PATH:C:/xampp/htdocs/SprachReise/storage}
 
-# Anthropic Claude AI
+# Anthropic Claude AI — clé dans application-local.yml (non versionné) ou variable d'env
 anthropic:
   api:
-    key: ${ANTHROPIC_API_KEY}
+    key: ${ANTHROPIC_API_KEY:}
 
 # Logging
 logging:

@@ -1,4 +1,5 @@
 # ===== BACKEND =====
+backend/**/application-local.yml
 backend/target/
 backend/.mvn/wrapper/maven-wrapper.jar
 backend/**/*.class
