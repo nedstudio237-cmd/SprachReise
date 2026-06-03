@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,6 +19,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     List<Message> findByPair(@Param("a") Long a, @Param("b") Long b);
 
     @Modifying
+    @Transactional
     @Query("UPDATE Message m SET m.readAt = :now " +
            "WHERE m.recipientId = :me AND m.senderId = :other AND m.readAt IS NULL")
     int markAsRead(@Param("me") Long me, @Param("other") Long other, @Param("now") LocalDateTime now);

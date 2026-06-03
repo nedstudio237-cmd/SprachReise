@@ -4,98 +4,77 @@ import com.sprachreise.api.dto.SessionDto;
 import com.sprachreise.api.entity.Role;
 import com.sprachreise.api.entity.SessionAttendee;
 import com.sprachreise.api.entity.StreamingSession;
-import com.sprachreise.api.entity.TrainerProfile;
 import com.sprachreise.api.entity.User;
 import com.sprachreise.api.repository.SessionAttendeeRepository;
 import com.sprachreise.api.repository.StreamingSessionRepository;
-import com.sprachreise.api.repository.TrainerProfileRepository;
 import com.sprachreise.api.repository.UserRepository;
 import com.sprachreise.api.service.AgoraTokenService;
-import com.sprachreise.api.service.LoggingMailService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/sessions")
 public class SessionController {
 
-    private static final Map<Long, String> LEVEL_CODES = Map.of(
-        1L, "A1", 2L, "A2", 3L, "B1", 4L, "B2", 5L, "C1", 6L, "C2"
-    );
-
-    private static final Set<String> ALLOWED_PDF_EXT = Set.of("pdf");
-    private static final long MAX_PDF_BYTES = 20L * 1024 * 1024;
-
-    // TODO 7.6: scheduled reminder cron — to be added later (e.g. @Scheduled hourly job
-    // that scans streaming_sessions with status=SCHEDULED and scheduledStart within
-    // 1h / 15min windows, then calls LoggingMailService.notifyLearnersSessionScheduled
-    // (or a dedicated reminder method) and pushes notifications.
-
     private final StreamingSessionRepository sessionRepository;
-    private final SessionAttendeeRepository attendeeRepository;
-    private final UserRepository userRepository;
-    private final TrainerProfileRepository trainerProfileRepository;
-    private final AgoraTokenService agoraTokenService;
-    private final LoggingMailService mailService;
+    private final SessionAttendeeRepository  attendeeRepository;
+    private final UserRepository             userRepository;
+    private final AgoraTokenService          agoraTokenService;
+    private final SimpMessagingTemplate      broker;
 
-    @Value("${storage.upload-dir}")
-    private String storageDir;
+    private static final Map<String, Long> LEVEL_IDS = Map.of(
+        "A1",1L,"A2",2L,"B1",3L,"B2",4L,"C1",5L,"C2",6L
+    );
 
     public SessionController(StreamingSessionRepository sessionRepository,
                              SessionAttendeeRepository attendeeRepository,
                              UserRepository userRepository,
-                             TrainerProfileRepository trainerProfileRepository,
                              AgoraTokenService agoraTokenService,
-                             LoggingMailService mailService) {
+                             SimpMessagingTemplate broker) {
         this.sessionRepository = sessionRepository;
         this.attendeeRepository = attendeeRepository;
-        this.userRepository = userRepository;
-        this.trainerProfileRepository = trainerProfileRepository;
+        this.userRepository    = userRepository;
         this.agoraTokenService = agoraTokenService;
-        this.mailService = mailService;
+        this.broker            = broker;
     }
 
+    // ── Liste sessions visibles par l'apprenant (formateur assigné seulement) ─
     @GetMapping
-    public ResponseEntity<List<SessionDto>> getAll(@RequestParam(required = false) Long levelId) {
-        var sessions = levelId != null
-            ? sessionRepository.findByLevelId(levelId)
-            : sessionRepository.findUpcomingAndLive();
+    public ResponseEntity<?> getAll(@RequestParam(required = false) Long levelId,
+                                    Authentication auth) {
+        User me = currentUser(auth);
+        if (me == null) return ResponseEntity.status(401).build();
 
-        return ResponseEntity.ok(
-            sessions.stream().map(SessionDto::from).collect(Collectors.toList())
-        );
-    }
+        List<StreamingSession> sessions;
 
-    @GetMapping("/mine")
-    public ResponseEntity<?> getMine() {
-        User me = currentUser();
-        if (me == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        if (me.getRole() != Role.TRAINER) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Réservé aux formateurs"));
+        if (me.getRole() == Role.LEARNER) {
+            // L'apprenant voit uniquement les sessions de son formateur assigné
+            if (me.getAssignedTrainerId() != null) {
+                sessions = sessionRepository.findAllByTrainerId(me.getAssignedTrainerId());
+            } else {
+                // Pas encore assigné : afficher les sessions de son niveau
+                Long lvl = levelId != null ? levelId :
+                    LEVEL_IDS.getOrDefault(me.getLevelCode() != null ? me.getLevelCode() : "A1", 1L);
+                sessions = sessionRepository.findByLevelId(lvl);
+            }
+        } else if (me.getRole() == Role.TRAINER) {
+            sessions = sessionRepository.findAllByTrainerId(me.getId());
+        } else {
+            // ADMIN voit tout
+            sessions = levelId != null
+                ? sessionRepository.findByLevelId(levelId)
+                : sessionRepository.findAll();
         }
-        List<SessionDto> dtos = sessionRepository.findByTrainerIdOrderByScheduledStartDesc(me.getId()).stream()
-            .map(SessionDto::from)
-            .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+        return ResponseEntity.ok(sessions.stream().map(SessionDto::from).collect(Collectors.toList()));
     }
 
     @GetMapping("/{id}")
@@ -105,196 +84,23 @@ public class SessionController {
             .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public ResponseEntity<?> create(@RequestBody Map<String, Object> body) {
-        User me = currentUser();
-        if (me == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        if (me.getRole() != Role.TRAINER) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Réservé aux formateurs"));
-        }
-
-        Optional<TrainerProfile> tpOpt = trainerProfileRepository.findByUserId(me.getId());
-        if (tpOpt.isEmpty() || tpOpt.get().getAssignedLevelId() == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Profil formateur sans niveau assigné"));
-        }
-        Long levelId = tpOpt.get().getAssignedLevelId();
-        String levelCode = LEVEL_CODES.getOrDefault(levelId, "X");
-
-        String title = strOf(body.get("title"));
-        if (title.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Titre requis"));
-        }
-        String description = strOf(body.get("description"));
-
-        LocalDateTime scheduledStart;
-        try {
-            scheduledStart = LocalDateTime.parse(strOf(body.get("scheduledStart")));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "scheduledStart invalide (ISO attendu)"));
-        }
-
-        Integer durationMinutes;
-        try {
-            Object dm = body.get("durationMinutes");
-            durationMinutes = dm == null ? 60 : Integer.parseInt(dm.toString());
-            if (durationMinutes <= 0) throw new NumberFormatException();
-        } catch (NumberFormatException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "durationMinutes invalide"));
-        }
-
-        String attachmentPdf = strOf(body.get("attachmentPdf"));
-        boolean recordEnabled = body.get("recordEnabled") != null
-            && Boolean.parseBoolean(body.get("recordEnabled").toString());
-
-        StreamingSession s = new StreamingSession();
-        s.setTrainer(me);
-        s.setLevelId(levelId);
-        s.setTitle(title);
-        s.setDescription(description.isEmpty() ? null : description);
-        s.setScheduledStart(scheduledStart);
-        s.setDurationMinutes(durationMinutes);
-        s.setAgoraChannel("sr_" + levelCode + "_" + UUID.randomUUID().toString().replace("-", "").substring(0, 12));
-        s.setStatus(StreamingSession.SessionStatus.SCHEDULED);
-        s.setRecordEnabled(recordEnabled);
-        if (!attachmentPdf.isEmpty()) s.setAttachmentPdf(attachmentPdf);
-
-        StreamingSession saved = sessionRepository.save(s);
-        mailService.notifyLearnersSessionScheduled(levelId, saved.getTitle(), saved.getScheduledStart());
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(SessionDto.from(saved));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Map<String, Object> body) {
-        User me = currentUser();
-        if (me == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        if (me.getRole() != Role.TRAINER) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Réservé aux formateurs"));
-        }
-
-        Optional<StreamingSession> opt = sessionRepository.findById(id);
-        if (opt.isEmpty()) return ResponseEntity.notFound().build();
-        StreamingSession s = opt.get();
-        if (s.getTrainer() == null || !s.getTrainer().getId().equals(me.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Vous n'êtes pas propriétaire de cette session"));
-        }
-
-        boolean scheduleChanged = false;
-
-        if (body.containsKey("title")) {
-            String v = strOf(body.get("title"));
-            if (v.isEmpty()) return ResponseEntity.badRequest().body(Map.of("error", "Titre requis"));
-            s.setTitle(v);
-        }
-        if (body.containsKey("description")) {
-            String v = strOf(body.get("description"));
-            s.setDescription(v.isEmpty() ? null : v);
-        }
-        if (body.containsKey("scheduledStart")) {
-            try {
-                LocalDateTime ns = LocalDateTime.parse(strOf(body.get("scheduledStart")));
-                if (!ns.equals(s.getScheduledStart())) scheduleChanged = true;
-                s.setScheduledStart(ns);
-            } catch (Exception e) {
-                return ResponseEntity.badRequest().body(Map.of("error", "scheduledStart invalide (ISO attendu)"));
-            }
-        }
-        if (body.containsKey("durationMinutes")) {
-            try {
-                int dm = Integer.parseInt(body.get("durationMinutes").toString());
-                if (dm <= 0) throw new NumberFormatException();
-                s.setDurationMinutes(dm);
-            } catch (NumberFormatException e) {
-                return ResponseEntity.badRequest().body(Map.of("error", "durationMinutes invalide"));
-            }
-        }
-        if (body.containsKey("attachmentPdf")) {
-            String v = strOf(body.get("attachmentPdf"));
-            s.setAttachmentPdf(v.isEmpty() ? null : v);
-        }
-        if (body.containsKey("recordEnabled")) {
-            s.setRecordEnabled(Boolean.parseBoolean(body.get("recordEnabled").toString()));
-        }
-
-        StreamingSession saved = sessionRepository.save(s);
-        if (scheduleChanged) {
-            mailService.notifyLearnersSessionScheduled(saved.getLevelId(), saved.getTitle(), saved.getScheduledStart());
-        }
-        return ResponseEntity.ok(SessionDto.from(saved));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> cancel(@PathVariable Long id) {
-        User me = currentUser();
-        if (me == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        if (me.getRole() != Role.TRAINER) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Réservé aux formateurs"));
-        }
-        Optional<StreamingSession> opt = sessionRepository.findById(id);
-        if (opt.isEmpty()) return ResponseEntity.notFound().build();
-        StreamingSession s = opt.get();
-        if (s.getTrainer() == null || !s.getTrainer().getId().equals(me.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Vous n'êtes pas propriétaire de cette session"));
-        }
-        s.setStatus(StreamingSession.SessionStatus.CANCELLED);
-        sessionRepository.save(s);
-        return ResponseEntity.ok(Map.of("status", "CANCELLED"));
-    }
-
-    @PostMapping("/{id}/start")
-    public ResponseEntity<?> start(@PathVariable Long id) {
-        User me = currentUser();
-        if (me == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        if (me.getRole() != Role.TRAINER) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Réservé aux formateurs"));
-        }
-        Optional<StreamingSession> opt = sessionRepository.findById(id);
-        if (opt.isEmpty()) return ResponseEntity.notFound().build();
-        StreamingSession s = opt.get();
-        if (s.getTrainer() == null || !s.getTrainer().getId().equals(me.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Vous n'êtes pas propriétaire de cette session"));
-        }
-        s.setStatus(StreamingSession.SessionStatus.LIVE);
-        sessionRepository.save(s);
-
-        String token = agoraTokenService.generateToken(s.getAgoraChannel(), me.getId(), "HOST");
-        return ResponseEntity.ok(Map.of(
-            "session", SessionDto.from(s),
-            "agoraChannel", s.getAgoraChannel(),
-            "token", token,
-            "role", "HOST"
-        ));
-    }
-
-    @PostMapping("/{id}/end")
-    public ResponseEntity<?> end(@PathVariable Long id) {
-        User me = currentUser();
-        if (me == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        if (me.getRole() != Role.TRAINER) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Réservé aux formateurs"));
-        }
-        Optional<StreamingSession> opt = sessionRepository.findById(id);
-        if (opt.isEmpty()) return ResponseEntity.notFound().build();
-        StreamingSession s = opt.get();
-        if (s.getTrainer() == null || !s.getTrainer().getId().equals(me.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Vous n'êtes pas propriétaire de cette session"));
-        }
-        s.setStatus(StreamingSession.SessionStatus.ENDED);
-        if (Boolean.TRUE.equals(s.getRecordEnabled())) {
-            s.setRecordingPath("recordings/session_" + s.getId() + ".mp4");
-        }
-        sessionRepository.save(s);
-        return ResponseEntity.ok(SessionDto.from(s));
-    }
-
+    // ── Rejoindre une session live (obtenir token Agora) ──────────────────────
     @PostMapping("/{id}/join")
-    public ResponseEntity<?> join(@PathVariable Long id) {
-        User me = currentUser();
-        if (me == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    public ResponseEntity<?> join(@PathVariable Long id, Authentication auth) {
+        User me = currentUser(auth);
+        if (me == null) return ResponseEntity.status(401).build();
 
-        Optional<StreamingSession> opt = sessionRepository.findById(id);
-        if (opt.isEmpty()) return ResponseEntity.notFound().build();
-        StreamingSession s = opt.get();
+        StreamingSession s = sessionRepository.findById(id).orElse(null);
+        if (s == null) return ResponseEntity.notFound().build();
+
+        // Vérifier que l'apprenant appartient bien à ce formateur
+        if (me.getRole() == Role.LEARNER) {
+            if (me.getAssignedTrainerId() == null ||
+                !me.getAssignedTrainerId().equals(s.getTrainer().getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Vous n'êtes pas dans la classe de ce formateur"));
+            }
+        }
 
         SessionAttendee att = attendeeRepository.findBySessionIdAndLearnerId(id, me.getId())
             .orElseGet(() -> {
@@ -307,85 +113,136 @@ public class SessionController {
         att.setJoinedAt(LocalDateTime.now());
         attendeeRepository.save(att);
 
-        String token = agoraTokenService.generateToken(s.getAgoraChannel(), me.getId(), "AUDIENCE");
+        String role  = me.getRole() == Role.TRAINER ? "HOST" : "AUDIENCE";
+        String token = agoraTokenService.generateToken(s.getAgoraChannel(), me.getId(), role);
         return ResponseEntity.ok(Map.of(
-            "session", SessionDto.from(s),
-            "agoraChannel", s.getAgoraChannel(),
-            "token", token,
-            "role", "AUDIENCE"
+            "session",       SessionDto.from(s),
+            "agoraChannel",  s.getAgoraChannel(),
+            "token",         token,
+            "role",          role,
+            "userId",        me.getId(),
+            "userName",      me.getFirstName() + " " + me.getLastName()
         ));
     }
 
-    @PostMapping("/{id}/attachment")
-    public ResponseEntity<?> uploadAttachment(@PathVariable Long id,
-                                              @RequestParam("file") MultipartFile file) {
-        User me = currentUser();
-        if (me == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        if (me.getRole() != Role.TRAINER) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Réservé aux formateurs"));
-        }
-        Optional<StreamingSession> opt = sessionRepository.findById(id);
-        if (opt.isEmpty()) return ResponseEntity.notFound().build();
-        StreamingSession s = opt.get();
-        if (s.getTrainer() == null || !s.getTrainer().getId().equals(me.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Vous n'êtes pas propriétaire de cette session"));
-        }
-        if (file == null || file.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Fichier vide"));
-        }
-        if (file.getSize() > MAX_PDF_BYTES) {
-            return ResponseEntity.badRequest().body(Map.of("error", "PDF > 20 Mo"));
-        }
-        String ext = extOf(file.getOriginalFilename());
-        if (!ALLOWED_PDF_EXT.contains(ext)) {
-            return ResponseEntity.badRequest().body(Map.of("error", "PDF : format .pdf requis"));
+    // ── Quitter une session ───────────────────────────────────────────────────
+    @PostMapping("/{id}/leave")
+    public ResponseEntity<?> leave(@PathVariable Long id, Authentication auth) {
+        User me = currentUser(auth);
+        if (me == null) return ResponseEntity.status(401).build();
+        attendeeRepository.findBySessionIdAndLearnerId(id, me.getId()).ifPresent(att -> {
+            att.setLeftAt(LocalDateTime.now());
+            attendeeRepository.save(att);
+        });
+        return ResponseEntity.ok(Map.of("message", "Session quittée"));
+    }
+
+    // ── Changer le statut d'une session (TRAINER seulement) ──────────────────
+    @PostMapping("/{id}/status")
+    public ResponseEntity<?> changeStatus(@PathVariable Long id,
+                                          @RequestBody Map<String, String> body,
+                                          Authentication auth) {
+        User me = currentUser(auth);
+        if (me == null) return ResponseEntity.status(401).build();
+
+        StreamingSession s = sessionRepository.findById(id).orElse(null);
+        if (s == null) return ResponseEntity.notFound().build();
+        if (!s.getTrainer().getId().equals(me.getId()))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error","Accès refusé"));
+
+        String newStatus = body.getOrDefault("status","");
+        try {
+            s.setStatus(StreamingSession.SessionStatus.valueOf(newStatus));
+            sessionRepository.save(s);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error","Statut invalide"));
         }
 
-        try {
-            Path dir = Paths.get(storageDir, "sessions", "pdf");
-            Files.createDirectories(dir);
-            String filename = "session_" + s.getId() + "_" + System.currentTimeMillis() + ".pdf";
-            Path target = dir.resolve(filename);
-            Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
-            String relative = "sessions/pdf/" + filename;
-            s.setAttachmentPdf(relative);
-            sessionRepository.save(s);
-            return ResponseEntity.ok(Map.of("attachmentPdf", relative));
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Échec de l'upload : " + e.getMessage()));
+        // Broadcast instantané à tous les participants via STOMP
+        broker.convertAndSend(
+            "/topic/live/" + id + "/status",
+            Map.of("status", s.getStatus().name(), "sessionId", id)
+        );
+
+        return ResponseEntity.ok(Map.of("status", s.getStatus().name(), "sessionId", id));
+    }
+
+    // ── Participants actuels d'une session ────────────────────────────────────
+    @GetMapping("/{id}/attendees")
+    public ResponseEntity<?> getAttendees(@PathVariable Long id, Authentication auth) {
+        User me = currentUser(auth);
+        if (me == null) return ResponseEntity.status(401).build();
+
+        List<SessionAttendee> attendees = attendeeRepository.findBySessionId(id);
+        List<Map<String,Object>> result = new ArrayList<>();
+        for (SessionAttendee a : attendees) {
+            userRepository.findById(a.getLearnerId()).ifPresent(u -> {
+                Map<String,Object> m = new LinkedHashMap<>();
+                m.put("userId",    u.getId());
+                m.put("firstName", u.getFirstName());
+                m.put("lastName",  u.getLastName());
+                m.put("joinedAt",  a.getJoinedAt() != null ? a.getJoinedAt().toString() : null);
+                m.put("leftAt",    a.getLeftAt()   != null ? a.getLeftAt().toString()   : null);
+                m.put("online",    a.getLeftAt() == null && a.getJoinedAt() != null);
+                result.add(m);
+            });
         }
+        return ResponseEntity.ok(result);
+    }
+
+    // ── Stats d'une session terminée (formateur + apprenants assignés) ────────
+    @GetMapping("/{id}/stats")
+    public ResponseEntity<?> getStats(@PathVariable Long id, Authentication auth) {
+        User me = currentUser(auth);
+        if (me == null) return ResponseEntity.status(401).build();
+
+        StreamingSession s = sessionRepository.findById(id).orElse(null);
+        if (s == null) return ResponseEntity.notFound().build();
+        boolean isTrainer = me.getRole() == Role.TRAINER && s.getTrainer().getId().equals(me.getId());
+        boolean isAssignedLearner = me.getRole() == Role.LEARNER
+            && s.getTrainer().getId().equals(me.getAssignedTrainerId());
+        if (!isTrainer && !isAssignedLearner && me.getRole() != Role.ADMIN)
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error","Accès refusé"));
+
+        List<SessionAttendee> attendees = attendeeRepository.findBySessionId(id);
+
+        long totalJoined = attendees.stream().filter(a -> a.getJoinedAt() != null).count();
+        long stayedFull  = attendees.stream().filter(a ->
+            a.getJoinedAt() != null && a.getLeftAt() == null).count();
+
+        // Durée moyenne en minutes
+        double avgDuration = attendees.stream()
+            .filter(a -> a.getJoinedAt() != null && a.getLeftAt() != null)
+            .mapToLong(a -> java.time.Duration.between(a.getJoinedAt(), a.getLeftAt()).toMinutes())
+            .average().orElse(0);
+
+        long registered = attendees.size();
+
+        Map<String,Object> stats = new LinkedHashMap<>();
+        stats.put("sessionTitle",        s.getTitle());
+        stats.put("scheduledDuration",   s.getDurationMinutes());
+        stats.put("totalRegistered",     registered);
+        stats.put("totalJoined",         totalJoined);
+        stats.put("stayedUntilEnd",      stayedFull);
+        stats.put("avgDurationMinutes",  Math.round(avgDuration));
+        stats.put("attendanceRate",      registered > 0 ? Math.round(100.0 * totalJoined / registered) : 0);
+        return ResponseEntity.ok(stats);
     }
 
     @PostMapping("/{id}/attend")
-    public ResponseEntity<?> attend(@PathVariable Long id,
-                                    @RequestHeader(value = "Authorization", required = false) String authHeader) {
+    public ResponseEntity<?> attend(@PathVariable Long id) {
         return sessionRepository.findById(id)
             .map(s -> ResponseEntity.ok(Map.of(
                 "message", "Inscription confirmée",
                 "sessionId", id,
-                "sessionTitle", s.getTitle()
-            )))
+                "sessionTitle", s.getTitle())))
             .orElse(ResponseEntity.notFound().build());
     }
 
-    private User currentUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() == null) return null;
-        Object principal = auth.getPrincipal();
-        if (!(principal instanceof UserDetails)) return null;
-        String email = ((UserDetails) principal).getUsername();
-        return userRepository.findByEmail(email).orElse(null);
-    }
-
-    private static String strOf(Object o) {
-        return o == null ? "" : o.toString().trim();
-    }
-
-    private static String extOf(String filename) {
-        if (filename == null) return "";
-        int dot = filename.lastIndexOf('.');
-        if (dot < 0) return "";
-        return filename.substring(dot + 1).toLowerCase();
+    private User currentUser(Authentication auth) {
+        if (auth == null) return null;
+        Object p = auth.getPrincipal();
+        if (!(p instanceof UserDetails ud)) return null;
+        return userRepository.findByEmail(ud.getUsername()).orElse(null);
     }
 }

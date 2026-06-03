@@ -8,10 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TrainerProfileRepository extends JpaRepository<TrainerProfile, Long> {
-
-    @Query("SELECT tp FROM TrainerProfile tp JOIN FETCH tp.user u WHERE u.active = true AND u.role = com.sprachreise.api.entity.Role.TRAINER ORDER BY tp.ratingAvg DESC")
-    List<TrainerProfile> findAllActive();
-
-    @Query("SELECT tp FROM TrainerProfile tp JOIN FETCH tp.user u WHERE tp.user.id = :userId")
     Optional<TrainerProfile> findByUserId(Long userId);
+    List<TrainerProfile> findByStatus(TrainerProfile.Status status);
+
+    @Query("SELECT p FROM TrainerProfile p WHERE p.status = 'APPROVED' AND p.teachingLevelCode = :levelCode AND (p.currentStudents < p.maxStudents) ORDER BY p.currentStudents ASC")
+    List<TrainerProfile> findAvailableByLevel(String levelCode);
 }

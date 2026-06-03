@@ -54,6 +54,12 @@ agora:
   app-id: ${AGORA_APP_ID:your-agora-app-id}
   app-certificate: ${AGORA_APP_CERTIFICATE:your-agora-app-certificate}
 
+# CamPay (Orange Money + MTN Money - Cameroun)
+campay:
+  api-key: ${CAMPAY_API_KEY:campay_test_placeholder}
+  app-username: ${CAMPAY_USERNAME:campay_user}
+  base-url: https://demo.campay.net/api
+
 # Stripe Configuration
 stripe:
   secret-key: ${STRIPE_SECRET_KEY:sk_test_your-stripe-secret-key}
@@ -73,4 +79,6 @@ anthropic:
 logging:
   level:
     com.sprachreise: DEBUG
-    org.springframework.security: INFO
+    org.springframework.security: DEBUG
+    "[org.springframework.web]": DEBUG
+    "[org.apache.tomcat]": DEBUG

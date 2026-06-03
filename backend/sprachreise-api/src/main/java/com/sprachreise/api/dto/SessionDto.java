@@ -5,6 +5,7 @@ import com.sprachreise.api.entity.StreamingSession;
 public class SessionDto {
     public Long id;
     public Long levelId;
+    public String levelCode;
     public String title;
     public String description;
     public String scheduledStart;
@@ -21,6 +22,8 @@ public class SessionDto {
         SessionDto dto = new SessionDto();
         dto.id = s.getId();
         dto.levelId = s.getLevelId();
+        dto.levelCode = java.util.Map.of(1L,"A1",2L,"A2",3L,"B1",4L,"B2",5L,"C1",6L,"C2")
+            .getOrDefault(s.getLevelId(), "?");
         dto.title = s.getTitle();
         dto.description = s.getDescription();
         dto.scheduledStart = s.getScheduledStart() != null ? s.getScheduledStart().toString() : null;

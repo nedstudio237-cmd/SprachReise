@@ -1,18 +1,15 @@
 package com.sprachreise.api.service;
 
-import com.sprachreise.api.entity.TrainerApplication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-/**
- * Sends real emails via JavaMailSender. Always logs the email content
- * for traceability. If SMTP is misconfigured or sending fails, logs the
- * exception but never throws — the calling controller flow continues.
- */
+import jakarta.mail.internet.MimeMessage;
+
 @Service
 public class LoggingMailService {
 
@@ -30,27 +27,36 @@ public class LoggingMailService {
         this.mailSender = mailSender;
     }
 
+    private void sendHtml(String to, String subject, String htmlBody) {
+        log.info("===== EMAIL HTML =====\nTo: {}\nSubject: {}\n======================", to, subject);
+        if (mailSender == null || to == null || to.isBlank()) return;
+        try {
+            MimeMessage msg = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(msg, false, "UTF-8");
+            if (fromAddress != null && !fromAddress.isBlank() && !fromAddress.contains("your-"))
+                helper.setFrom(fromAddress);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(htmlBody, true);
+            mailSender.send(msg);
+            log.info("HTML email sent to {}", to);
+        } catch (Exception e) {
+            log.warn("HTML SMTP send failed for {} : {}", to, e.getMessage());
+        }
+    }
+
     private void send(String to, String subject, String body) {
         log.info("===== EMAIL =====");
-        log.info("To       : {}", to);
-        log.info("Subject  : {}", subject);
-        log.info("Body     :\n{}", body);
+        log.info("To      : {}", to);
+        log.info("Subject : {}", subject);
+        log.info("Body    :\n{}", body);
         log.info("=================");
-
-        if (mailSender == null) {
-            log.warn("JavaMailSender is null, email NOT sent.");
-            return;
-        }
-        if (to == null || to.isBlank()) {
-            log.warn("Recipient is empty, email NOT sent.");
-            return;
-        }
+        if (mailSender == null) { log.warn("JavaMailSender is null, email NOT sent."); return; }
+        if (to == null || to.isBlank()) { log.warn("Recipient empty, email NOT sent."); return; }
         try {
             SimpleMailMessage msg = new SimpleMailMessage();
-            if (fromAddress != null && !fromAddress.isBlank()
-                    && !fromAddress.contains("your-")) {
+            if (fromAddress != null && !fromAddress.isBlank() && !fromAddress.contains("your-"))
                 msg.setFrom(fromAddress);
-            }
             msg.setTo(to);
             msg.setSubject(subject);
             msg.setText(body);
@@ -61,160 +67,115 @@ public class LoggingMailService {
         }
     }
 
-    public void notifyAdminNewApplication(TrainerApplication application) {
-        String subject = "Nouvelle candidature formateur #" + application.getId();
-        String body = String.format("""
-                Bonjour,
-
-                Une nouvelle candidature de formateur vient d'être soumise sur SprachReise.
-
-                ID candidature : %d
-                Nom            : %s %s
-                Email          : %s
-                Téléphone      : %s
-                Niveau souhaité: level_id=%s
-                Langue mat.    : %s
-
-                Motivation :
-                %s
-
-                Connectez-vous à l'espace admin pour examiner le dossier et le diplôme joint.
-
-                — SprachReise
-                """,
-                application.getId(),
-                nullSafe(application.getFirstName()),
-                nullSafe(application.getLastName()),
-                nullSafe(application.getEmail()),
-                nullSafe(application.getPhone()),
-                String.valueOf(application.getRequestedLevelId()),
-                nullSafe(application.getNativeLanguage()),
-                nullSafe(application.getMotivation())
-        );
-        send(adminEmail, subject, body);
-    }
-
-    public void sendWelcomeTrainer(String email, String tempPassword) {
-        String subject = "Bienvenue formateur SprachReise — votre compte est prêt";
-        String body = String.format("""
-                Bonjour,
-
-                Félicitations ! Votre candidature de formateur sur SprachReise a été acceptée.
-
-                Voici vos identifiants de connexion :
-                  Email                  : %s
-                  Mot de passe temporaire: %s
-
-                Veuillez modifier votre mot de passe à votre première connexion depuis l'application mobile.
-
-                Bienvenue dans la communauté SprachReise — Lernen ohne Grenzen.
-
-                — L'équipe SprachReise
-                """, email, tempPassword);
-        send(email, subject, body);
-    }
-
-    public void sendRejection(String email, String motif) {
-        String subject = "Suite à votre candidature formateur SprachReise";
-        String body = String.format("""
-                Bonjour,
-
-                Nous vous remercions pour l'intérêt que vous portez à SprachReise.
-
-                Après examen de votre dossier, nous ne sommes pas en mesure de donner suite à votre candidature pour le moment.
-
-                Motif :
-                %s
-
-                Vous pouvez soumettre une nouvelle candidature ultérieurement si votre situation évolue.
-
-                — L'équipe SprachReise
-                """, motif);
-        send(email, subject, body);
-    }
-
     public void notifyExamSubmission(String trainerEmail, String learnerName, String examTitle) {
-        String subject = "Nouvelle copie reçue pour l'épreuve « " + examTitle + " »";
-        String body = String.format("""
-                Bonjour,
-
-                L'apprenant %s vient de soumettre une copie pour votre épreuve « %s ».
-
-                Connectez-vous à SprachReise pour la corriger.
-
-                — SprachReise
-                """, learnerName, examTitle);
-        send(trainerEmail, subject, body);
+        send(trainerEmail,
+            "Nouvelle copie reçue pour l'épreuve « " + examTitle + " »",
+            String.format("L'apprenant %s vient de soumettre une copie pour votre épreuve « %s ».\n\n— SprachReise",
+                learnerName, examTitle));
     }
 
     public void notifyExamGraded(String learnerEmail, String examTitle,
                                  java.math.BigDecimal grade, String feedback) {
-        String subject = "Votre copie « " + examTitle + " » a été corrigée";
-        String body = String.format("""
-                Bonjour,
-
-                Votre épreuve « %s » a été corrigée par votre formateur.
-
-                Note     : %s/20
-                Feedback :
-                %s
-
-                Connectez-vous à SprachReise pour consulter le détail.
-
-                — SprachReise
-                """, examTitle, grade, nullSafe(feedback));
-        send(learnerEmail, subject, body);
+        send(learnerEmail,
+            "Votre copie « " + examTitle + " » a été corrigée",
+            String.format("Votre épreuve « %s » a été corrigée.\n\nNote : %s/20\nFeedback :\n%s\n\n— SprachReise",
+                examTitle, grade, feedback == null ? "" : feedback));
     }
 
     public void notifyLearnersSessionScheduled(Long levelId, String title,
                                                java.time.LocalDateTime scheduledStart) {
-        // Pour le MVP, on log seulement — un vrai envoi nécessiterait de boucler
-        // sur les apprenants du niveau. La logique de fan-out sera ajoutée plus tard.
-        log.info("===== PUSH/EMAIL [LEARNERS level_id={}] : LIVE SESSION SCHEDULED =====", levelId);
-        log.info("Titre     : {}", title);
-        log.info("Niveau    : level_id={}", levelId);
-        log.info("Date      : {}", scheduledStart);
-        log.info("======================================================================");
+        log.info("===== PUSH [LEARNERS level_id={}] : SESSION SCHEDULED : {} @ {} =====",
+            levelId, title, scheduledStart);
     }
 
-    public void sendInvitation(String email, String token, String template) {
-        String link = "http://localhost:8090/api/trainer-applications/from-invitation?token=" + token;
-        boolean isDe = "DE".equalsIgnoreCase(template);
-        String subject;
-        String body;
-        if (isDe) {
-            subject = "Einladung als Trainer auf SprachReise";
-            body = String.format("""
-                    Hallo,
-
-                    Sie wurden eingeladen, der SprachReise-Plattform als Deutschtrainer beizutreten.
-
-                    Bitte klicken Sie auf den folgenden Link, um Ihre Bewerbung einzureichen :
-                    %s
-
-                    Dieser Link ist 7 Tage lang gültig.
-
-                    — SprachReise
-                    """, link);
-        } else {
-            subject = "Invitation à rejoindre SprachReise comme formateur";
-            body = String.format("""
-                    Bonjour,
-
-                    Vous êtes invité(e) à rejoindre la plateforme SprachReise en tant que formateur d'allemand.
-
-                    Cliquez sur le lien suivant pour soumettre votre candidature :
-                    %s
-
-                    Ce lien est valide pendant 7 jours.
-
-                    — L'équipe SprachReise
-                    """, link);
-        }
-        send(email, subject, body);
+    public void sendTrainerApproval(String email, String firstName) {
+        String name = (firstName != null && !firstName.isBlank()) ? firstName : "formateur";
+        String subject = "SprachReise — Votre candidature formateur a été approuvée !";
+        String html = """
+            <div style="font-family:'Georgia',serif;max-width:520px;margin:0 auto;background:#F5EFE3;border:1px solid #D9CAAA;border-radius:8px;overflow:hidden;">
+              <div style="background:#372619;padding:32px 28px;text-align:center;">
+                <h1 style="color:#F9F4E8;font-size:28px;margin:0;font-style:italic;font-weight:400;">SprachReise</h1>
+                <p style="color:#B8893A;font-size:11px;letter-spacing:3px;margin:6px 0 0;text-transform:uppercase;">Voyage en langue allemande</p>
+              </div>
+              <div style="padding:36px 32px;">
+                <div style="text-align:center;margin-bottom:24px;">
+                  <div style="font-size:48px;">✓</div>
+                  <h2 style="color:#372619;font-size:22px;margin:12px 0 4px;">Candidature approuvée !</h2>
+                  <div style="width:40px;height:2px;background:#B8893A;margin:0 auto;"></div>
+                </div>
+                <p style="color:#1F1610;font-size:15px;line-height:1.7;">Bonjour <strong>%s</strong>,</p>
+                <p style="color:#1F1610;font-size:15px;line-height:1.7;">
+                  Bonne nouvelle ! Votre candidature formateur sur <strong>SprachReise</strong> a été approuvée.
+                  Vous pouvez maintenant accéder à votre espace formateur et commencer à publier vos cours.
+                </p>
+                <div style="background:#372619;border-radius:6px;padding:20px;margin:24px 0;text-align:center;">
+                  <p style="color:#AE9182;font-size:12px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase;">Vos identifiants</p>
+                  <p style="color:#F9F4E8;font-size:15px;margin:4px 0;"><strong>Email :</strong> %s</p>
+                  <p style="color:#AE9182;font-size:12px;margin:8px 0 0;">Utilisez le mot de passe que vous avez choisi lors de votre inscription.</p>
+                </div>
+                <div style="text-align:center;margin:28px 0;">
+                  <a href="exp://sprachreise/login" style="display:inline-block;background:#A15E2D;color:#F9F4E8;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:13px;letter-spacing:2px;font-family:'Arial',sans-serif;font-weight:bold;">
+                    SE CONNECTER
+                  </a>
+                  <p style="color:#AE9182;font-size:11px;margin:12px 0 0;">Ouvrez SprachReise sur votre téléphone et connectez-vous avec vos identifiants.</p>
+                </div>
+                <p style="color:#1F1610;font-size:15px;line-height:1.7;">Bienvenue dans l'équipe SprachReise !</p>
+              </div>
+              <div style="background:#EAE0CC;padding:16px 28px;text-align:center;">
+                <p style="color:#AE9182;font-size:11px;margin:0;">— L'équipe SprachReise &nbsp;·&nbsp; <em>Lernen ohne Grenzen</em></p>
+              </div>
+            </div>
+            """.formatted(name, email);
+        sendHtml(email, subject, html);
     }
 
-    private static String nullSafe(String s) {
-        return s == null ? "" : s;
+    public void sendTrainerRejection(String email, String firstName, String motif) {
+        String name = (firstName != null && !firstName.isBlank()) ? firstName : "candidat";
+        String subject = "SprachReise — Réponse concernant votre candidature formateur";
+        String html = """
+            <div style="font-family:'Georgia',serif;max-width:520px;margin:0 auto;background:#F5EFE3;border:1px solid #D9CAAA;border-radius:8px;overflow:hidden;">
+              <div style="background:#372619;padding:32px 28px;text-align:center;">
+                <h1 style="color:#F9F4E8;font-size:28px;margin:0;font-style:italic;font-weight:400;">SprachReise</h1>
+                <p style="color:#B8893A;font-size:11px;letter-spacing:3px;margin:6px 0 0;text-transform:uppercase;">Voyage en langue allemande</p>
+              </div>
+              <div style="padding:36px 32px;">
+                <p style="color:#1F1610;font-size:15px;line-height:1.7;">Bonjour <strong>%s</strong>,</p>
+                <p style="color:#1F1610;font-size:15px;line-height:1.7;">
+                  Après examen attentif de votre dossier, nous ne pouvons malheureusement pas donner suite à votre candidature formateur pour le moment.
+                </p>
+                <div style="background:#fff0f0;border-left:4px solid #EF4444;border-radius:4px;padding:14px 18px;margin:20px 0;">
+                  <p style="color:#7f1d1d;font-size:13px;margin:0;"><strong>Motif :</strong> %s</p>
+                </div>
+                <p style="color:#1F1610;font-size:15px;line-height:1.7;">
+                  Vous pouvez soumettre une nouvelle candidature avec un dossier complet à tout moment.
+                </p>
+              </div>
+              <div style="background:#EAE0CC;padding:16px 28px;text-align:center;">
+                <p style="color:#AE9182;font-size:11px;margin:0;">— L'équipe SprachReise &nbsp;·&nbsp; <em>Lernen ohne Grenzen</em></p>
+              </div>
+            </div>
+            """.formatted(name, motif);
+        sendHtml(email, subject, html);
     }
+
+    public void sendPasswordReset(String email, String firstName, String newPassword) {
+        String name = (firstName != null && !firstName.isBlank()) ? firstName : "utilisateur";
+        send(email,
+            "SprachReise — Votre nouveau mot de passe",
+            String.format("""
+                Bonjour %s,
+
+                Vous avez demandé la réinitialisation de votre mot de passe SprachReise.
+
+                Votre nouveau mot de passe temporaire :
+                  %s
+
+                Connectez-vous avec ce mot de passe, puis changez-le depuis votre profil.
+
+                Si vous n'avez pas fait cette demande, ignorez ce message.
+
+                — L'équipe SprachReise
+                """, name, newPassword));
+    }
+
 }
