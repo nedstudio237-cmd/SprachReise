@@ -1,0 +1,1184 @@
+% =========================================================
+%  Rapport de projet
+%  Application Mobile d'Apprentissage de l'Allemand
+%  Compilation : pdfLaTeX (Overleaf)
+% =========================================================
+\documentclass[12pt,a4paper,oneside]{report}
+
+% ---------- Packages de base ----------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+
+% ---------- Police Times New Roman (style rapport professionnel) ----------
+\usepackage{mathptmx}   % Times pour le texte et les maths
+\usepackage[scaled=0.92]{helvet}  % Helvetica (sans serif) pour titres si besoin
+\usepackage{courier}    % Courier pour le code
+
+\usepackage[a4paper,top=2cm,bottom=2cm,left=2.2cm,right=2.2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{epigraph}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{shorttoc}
+\usepackage{setspace}
+\onehalfspacing
+%\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{csquotes}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds, shadows}
+
+% ── Bibliographie (fichier séparé : references.bib) ──────────────────────────
+\usepackage[
+  backend=biber,
+  style=apa,
+  sorting=nyt,
+  hyperref=true
+]{biblatex}
+\addbibresource{references.bib}
+
+% =========================================================
+%  GLOSSAIRE & ABRÉVIATIONS AUTOMATIQUES
+% =========================================================
+\usepackage{etoolbox}
+
+% ── IMPORTANT ────────────────────────────────────────────────────────────────
+% hyperref doit être chargé AVANT glossaries pour que les numéros de page
+% affichés à côté de chaque abréviation/entrée soient des liens cliquables
+% qui renvoient vers la page où l'abréviation est utilisée.
+\usepackage[colorlinks=true,
+            linkcolor=blue,
+            citecolor=blue,
+            urlcolor=blue]{hyperref}
+
+\usepackage[acronym,nopostdot,translate=false,toc,shortcuts]{glossaries}
+
+\makenoidxglossaries
+
+\newacronym{api}{API}{Application Programming Interface}
+\newacronym{apk}{APK}{Android Application Package}
+\newacronym{bdd}{BDD}{Base De Données}
+\newacronym{cecrl}{CECRL}{Cadre Européen Commun de Référence pour les Langues}
+\newacronym{crud}{CRUD}{Create, Read, Update, Delete}
+\newacronym{daad}{DAAD}{Deutscher Akademischer Austauschdienst}
+\newacronym{dsh}{DSH}{Deutsche Sprachprüfung für den Hochschulzugang}
+\newacronym{fcfa}{FCFA}{Franc de la Communauté Financière Africaine}
+\newacronym{fcm}{FCM}{Firebase Cloud Messaging}
+\newacronym{fts5}{FTS5}{Full-Text Search version 5 (SQLite)}
+\newacronym{hls}{HLS}{HTTP Live Streaming}
+\newacronym{ipa}{IPA}{iOS App Store Package}
+\newacronym{jpa}{JPA}{Java Persistence API}
+\newacronym{jwt}{JWT}{JSON Web Token}
+\newacronym{mvp}{MVP}{Minimum Viable Product}
+\newacronym{pkcs}{PKCS\#7}{Public-Key Cryptography Standards \#7}
+\newacronym{qcm}{QCM}{Questionnaire à Choix Multiples}
+\newacronym{rgpd}{RGPD}{Règlement Général sur la Protection des Données}
+\newacronym{rtc}{RTC}{Real-Time Communication}
+\newacronym{sdk}{SDK}{Software Development Kit}
+\newacronym{sql}{SQL}{Structured Query Language}
+\newacronym{tls}{TLS}{Transport Layer Security}
+\newacronym{uiux}{UI/UX}{User Interface / User Experience}
+\newacronym{uml}{UML}{Unified Modeling Language}
+
+\newglossaryentry{agora}{name={Agora SDK},
+  description={Plateforme de streaming temps réel (audio/vidéo) avec SDK mobile et serveur}}
+\newglossaryentry{bcrypt}{name={BCrypt},
+  description={Algorithme de hachage des mots de passe avec sel intégré et coût configurable}}
+\newglossaryentry{goethe}{name={Goethe-Zertifikat},
+  description={Certification officielle de langue allemande délivrée par le Goethe-Institut}}
+\newglossaryentry{mobilemoney}{name={Mobile Money},
+  description={Service de paiement par téléphone mobile (Orange Money, MTN MoMo)}}
+\newglossaryentry{sha}{name={SHA-256},
+  description={Fonction de hachage cryptographique à 256 bits}}
+\newglossaryentry{testdaf}{name={TestDaF},
+  description={Certification d'allemand requise pour l'accès à l'université allemande}}
+\newglossaryentry{webhook}{name={Webhook},
+  description={Notification HTTP envoyée par un service externe (Stripe, MoMo) au backend}}
+
+% ---------- Couleurs du projet ----------
+\definecolor{srgreen}{HTML}{1B4332}
+\definecolor{sryellow}{HTML}{FFB703}
+\definecolor{srred}{HTML}{D62828}
+\definecolor{srgray}{HTML}{64748B}
+
+% ---------- MOTS-CLÉS ----------
+\newcommand{\MotsCles}{apprentissage des langues, plateforme mobile, formateurs certifiés, streaming en direct, certification}
+\newcommand{\KeyWords}{language learning, mobile platform, certified trainers, live streaming, certification}
+
+% ---------- Hyperliens ----------
+%\hypersetup{ colorlinks=true,linkcolor=srgreen,urlcolor=srgreen,citecolor=srgreen,pdfkeywords={\MotsCles}}
+
+% ---------- En-tête / pied de page ----------
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[L]{\small\textit{Rapport de projet}}
+\fancyfoot[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \fancyfoot[L]{\small\textit{Rapport de projet}}
+  \fancyfoot[R]{\small\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0.4pt}
+}
+
+% ---------- Numérotation personnalisée ----------
+\renewcommand{\thechapter}{\Roman{chapter}}
+\renewcommand{\thesection}{\thechapter-\arabic{section}}
+\renewcommand{\thesubsection}{\Alph{subsection}}
+
+\titleformat{\chapter}[hang]
+  {\normalfont\LARGE\bfseries\color{srgreen}}
+  {Chapitre~\thechapter~:}{0.5em}{}
+\titlespacing*{\chapter}{0pt}{-30pt}{12pt}
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{srgreen}}{\thesection.}{0.6em}{}
+\titlespacing*{\section}{0pt}{1.4ex}{0.7ex}
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}{\thesubsection.}{0.5em}{}
+\titlespacing*{\subsection}{0pt}{1.0ex}{0.4ex}
+
+\newcommand{\oui}{\textcolor{srgreen}{\textbf{Oui}}}
+\newcommand{\non}{\textcolor{srred}{\textbf{Non}}}
+\setlength{\parindent}{0pt}
+
+% ---------- Listings (code) ----------
+\lstset{
+  basicstyle=\fontsize{7.5pt}{8.5pt}\selectfont\ttfamily,
+  keywordstyle=\color{srgreen}\bfseries,
+  commentstyle=\color{srgray}\itshape,
+  stringstyle=\color{srred},
+  backgroundcolor=\color{gray!5},
+  frame=single,
+  rulecolor=\color{srgray!50},
+  breaklines=true,
+  breakatwhitespace=true,
+  showstringspaces=false,
+  tabsize=2,
+  numbers=left,
+  numberstyle=\tiny\color{srgray},
+  numbersep=4pt,
+  aboveskip=4pt,
+  belowskip=2pt
+}
+
+\newcommand{\keywords}[1]{\par\smallskip\noindent\textbf{Mots-clés~:} #1}
+\newcommand{\kwords}[1]{\par\smallskip\noindent\textbf{Keywords:} #1}
+
+% =========================================================
+%                       DOCUMENT
+% =========================================================
+\setlength{\parskip}{0.5em}
+\begin{document}
+
+% =========================================================
+%                  PAGE DE COUVERTURE
+% =========================================================
+\begin{titlepage}
+\thispagestyle{empty}
+
+\begin{tikzpicture}[remember picture, overlay]
+  \draw[line width=1pt, black]
+    ([xshift=0.7cm, yshift=-0.7cm]current page.north west) rectangle
+    ([xshift=-0.7cm, yshift=0.7cm]current page.south east);
+\end{tikzpicture}
+
+\noindent
+\begin{minipage}[c][3cm][c]{0.48\textwidth}
+  \centering
+  \includegraphics[height=2.6cm,keepaspectratio]{logo1.png}
+\end{minipage}\hfill
+\begin{minipage}[c][3cm][c]{0.48\textwidth}
+  \centering
+  \includegraphics[height=4.0cm,keepaspectratio]{college.png}
+\end{minipage}
+
+\vspace{1.5cm}
+
+\begin{center}
+\begin{tikzpicture}
+\node[fill=black, text=white, inner xsep=12pt, inner ysep=10pt,
+      drop shadow={shadow xshift=0pt, shadow yshift=-4pt, opacity=0.6, fill=black},
+      minimum width=0.9\textwidth, align=center]
+  {\large\bfseries RAPPORT DE PROJET : APPLICATION MOBILE D'APPRENTISSAGE};
+\end{tikzpicture}
+\end{center}
+
+\vspace{2cm}
+
+\begin{center}
+\begin{tikzpicture}
+\node[fill=black, text=white, inner xsep=12pt, inner ysep=15pt,
+      drop shadow={shadow xshift=0pt, shadow yshift=-5pt, opacity=0.7, fill=black},
+      minimum width=0.9\textwidth, align=center] {%
+  {\Large APPLICATION MOBILE D'APPRENTISSAGE DE LANGUE}\\
+  {\Large ET DE VOYAGE}\\[0.25cm]
+};
+\end{tikzpicture}
+\end{center}
+
+\vspace{1.8cm}
+
+\noindent
+\begin{tikzpicture}
+\node[fill=white, fill opacity=0.85, text opacity=1,
+      inner xsep=12pt, inner ysep=10pt, align=left,
+      text width=0.7\textwidth] {%
+  \underline{\textbf{\large Membres du groupe 9:}}\\[0.3cm]
+  \hspace{0.6cm}$\blacktriangleright$~~NGONO MVONDO MARILNE SAMUELLE\\[2pt]
+  \hspace{0.6cm}$\blacktriangleright$~~NDESSOP TOUCHI DOCHRANE\\[2pt]
+  \hspace{0.6cm}$\blacktriangleright$~~GAOUM NANKEU GUERAR\\[2pt]
+  \hspace{0.6cm}$\blacktriangleright$~~TALLA KONO WAHO AUSTINE RYAN\\[2pt]
+  \hspace{0.6cm}$\blacktriangleright$~~EVINA ZE DIEUBENI ROMARIC%
+};
+\end{tikzpicture}
+
+\vfill
+
+\noindent
+\begin{tikzpicture}
+\node[fill=white, fill opacity=0.85, text opacity=1,
+      inner xsep=10pt, inner ysep=8pt, align=left,
+      text width=0.55\textwidth] {%
+  \underline{Sous l'encadrement de :}
+  \textbf{M.FOMEKONG EVARIS}%
+};
+\end{tikzpicture}\hfill
+\begin{tikzpicture}
+\node[fill=white, fill opacity=0.85, text opacity=1,
+      inner xsep=2pt, inner ysep=2pt, align=right] {%
+  \itshape Étudiants en Bachelor 2A%
+};
+\end{tikzpicture}
+
+\vspace{0.8cm}
+
+\begin{center}
+\begin{tikzpicture}
+\node[fill=blue!65!cyan, rounded corners=5pt, text=white,
+      inner xsep=18pt, inner ysep=6pt,
+      font=\bfseries\large]{2025 -- 2026};
+\end{tikzpicture}
+\end{center}
+
+\vspace{0.3cm}
+\end{titlepage}
+
+% =========================================================
+% FRONT MATTER
+% =========================================================
+\pagenumbering{roman}
+\setcounter{page}{2}
+
+% ---------- Remerciements ----------
+\chapter*{Remerciements}
+\addcontentsline{toc}{chapter}{Remerciements}
+Tout d'abord nous tenons à préciser que la réalisation de ce projet n'a pas été chose facile pour nous, mais avec l'intervention de ces différents intervenants nous avons pu le finaliser c'est pourquoi nous tenons à citer leurs noms :
+
+\vspace{0.3em}
+\begin{itemize}[label=\textbf{--}, leftmargin=1.5cm, itemsep=0.6em, topsep=0.3em]
+
+\item Nos remerciements les plus sincères s'adressent tout d'abord à notre encadreur, \textbf{M. EVARIS FOMEKONG}, qui a su nous guider tout au long de la conception de ce projet. Par sa disponibilité constante, il a su nous venir en aide en tout temps, tout en conservant sa double casquette d'ingénieur informaticien et de professeur en langage SQL et bases de données.
+
+\item \textbf{M. JEAN YOUTOU}, directeur des Campus des Collèges de Paris en Afrique, pour avoir mis à notre disposition le minimum requis pour mener à bien notre cursus scolaire.
+
+\item \textbf{L'ensemble du personnel du Campus des Écoles de Paris} pour avoir toujours été disponible pour nos doléances et avoir mis le matériel adéquat à notre disposition. Enfin, nos pensées reconnaissantes vont à notre jury dont le regard critique et les conseils avisés à venir vont grandement enrichir ce travail, ainsi qu'à nos enseignants et nos camarades de promotion pour leur soutien et leurs échanges constructifs.
+
+\item \textbf{Nos différentes familles}, en particulier nos parents respectifs, pour le soutien financier, moral et spirituel tout au long de notre parcours scolaire ; nous vous en sommes infiniment reconnaissants.
+
+\end{itemize}
+
+% ---------- Résumé ----------
+\chapter*{Résumé}
+\addcontentsline{toc}{chapter}{Résumé}
+\markboth{Résumé}{Résumé}
+Ce rapport présente \textbf{une plateforme mobile intelligente} dédiée à l'apprentissage des langues internationales. Conçue pour les étudiants, les professionnels et toute personne souhaitant développer ses compétences linguistiques dans un contexte académique, professionnel ou culturel, l'application répond aux besoins croissants de formation linguistique liés à la mondialisation et à la mobilité internationale. Conçue pour s'adapter spécifiquement au contexte camerounais, cette application a le potentiel de devenir un outil essentiel pour faciliter l'accès à un apprentissage linguistique moderne, flexible et accessible.
+
+La plateforme connecte les apprenants à des formateurs certifiés à travers des cours vidéo à la demande, des séances de streaming en direct, des exercices interactifs ainsi qu'une bibliothèque numérique de ressources pédagogiques. Elle intègre également des systèmes d'évaluation automatisée, de suivi de progression, de certification et de gestion des abonnements, offrant ainsi une expérience d'apprentissage moderne, interactive, personnalisée et évolutive. L'allemand constitue la langue pilote du déploiement initial dans le contexte de l'Afrique francophone.
+
+Ce document décrit l'ensemble du processus de développement de la solution, depuis l'étude de l'existant et l'analyse des besoins jusqu'à la conception orientée objet à l'aide des diagrammes \ac{uml} et l'implémentation du produit minimum viable, en mettant en évidence les choix technologiques et architecturaux retenus.
+
+\vspace{1em}
+\noindent\textbf{Mots-clés :} Application mobile, Apprentissage des langues, E-learning, Streaming, UML, Architecture logicielle, MVP.
+
+% ---------- Abstract ----------
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+This report presents \textbf{an intelligent mobile platform} dedicated to learning international languages. Designed for students, professionals, and anyone wishing to develop their language skills in an academic, professional, or cultural context, the application addresses the growing needs for language training driven by globalization and international mobility. Specifically designed to adapt to the Cameroonian context, this application has the potential to become an essential tool for facilitating access to modern, flexible, and accessible language learning.
+
+The platform connects learners with certified instructors through on-demand video courses, live streaming sessions, interactive exercises, as well as a digital library of educational resources. It also integrates automated assessment, progress tracking, certification, and subscription management systems, thus offering a modern, interactive, personalized, and scalable learning experience. German serves as the pilot language for the initial deployment in the context of French-speaking Africa.
+
+This document describes the entire development process of the solution, from the study of the existing situation and needs analysis to object-oriented design using \ac{uml} diagrams and the implementation of the minimum viable product, highlighting the technological and architectural choices that were adopted.
+\vspace{1em}
+\noindent\textbf{Keywords:} Mobile application, Language learning, E-learning, Streaming, UML, Software architecture, MVP.
+
+% ---------- Sommaire ----------
+\shorttoc{Sommaire}{1}
+\addcontentsline{toc}{chapter}{Sommaire}
+
+% ---------- Liste des figures ----------
+\listoffigures
+\addcontentsline{toc}{chapter}{Liste des figures}
+
+% ---------- Liste des tableaux ----------
+\listoftables
+\addcontentsline{toc}{chapter}{Liste des tableaux}
+
+% ---------- Abréviations ----------
+\printnoidxglossary[type=\acronymtype, title={Abréviations}, style=long]
+
+% ---------- Glossaire ----------
+\printnoidxglossary[type=main, title={Glossaire}, style=altlist]
+
+% =========================================================
+% MAIN MATTER
+% =========================================================
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+% =========================================================
+\chapter*{Introduction}
+\addcontentsline{toc}{chapter}{Introduction}
+% =========================================================
+\markboth{Introduction}{}
+Dans un contexte de mondialisation croissante, la maîtrise de plusieurs langues internationales est devenue un facteur déterminant de réussite pour les étudiants, les professionnels et toute personne aspirant à la mobilité, qu'elle soit académique, professionnelle ou culturelle. En Afrique francophone, et particulièrement au Cameroun, cette réalité se manifeste avec une acuité particulière : les opportunités d'études à l'étranger, les programmes de mobilité internationale, les exigences du marché du travail mondial et le développement des échanges interculturels génèrent une demande d'apprentissage des langues sans précédent. Or, l'offre de formation reste structurellement inadaptée à cette demande : les instituts de langues agréés sont concentrés dans les grandes métropoles et leurs tarifs sont inaccessibles à la majorité. Les ressources disponibles en ligne restent éparpillées sur différents sites sans cohérence pédagogique, sans parcours structuré, sans suivi personnalisé et sans interaction réelle avec des formateurs qualifiés.
+% la problematique
+
+Cette réalité soulève une question centrale : \textbf{comment offrir aux apprenants une plateforme mobile unifiée, accessible et évolutive, permettant d'apprendre plusieurs langues internationales de manière structurée, encadrée par des formateurs certifiés, enrichie d'une bibliothèque numérique dense et d'outils d'évaluation modernes ; tout en tenant compte des contraintes spécifiques au contexte africain telles que la connectivité réseau limitée et la nécessité d'un cursus aligné sur des standards internationaux reconnus ?}
+% les motivation
+
+ C’est dans cette dynamique que s’inscrit notre projet tutoré, réalisé dans le cadre de notre formation en Bachelor 2 en Informatique et Intelligence Artificielle. Ce projet constitue une opportunité de mettre en pratique les connaissances théoriques et techniques acquises au cours de notre parcours académique, tout en développant des compétences en conception, développement et gestion de projets informatiques. Grâce aux avancées du streaming en temps réel, des frameworks mobiles multiplateformes et des solutions de paiement en ligne, nous développons notre plateforme intelligente, qui connecte les apprenants à des formateurs certifiés au sein d’un écosystème combinant cours vidéo, sessions interactives en direct, exercices pratiques et suivi personnalisé de la progression. Son architecture, conçue pour être évolutive, permet l’intégration future de plusieurs langues et l’ajout de nouvelles fonctionnalités répondant aux besoins des utilisateurs.
+ %les objectifs specifiques et generale
+ 
+ L’objectif général est de concevoir et déployer cette application sur iOS et Android, en utilisant l’allemand comme langue pilote. Spécifiquement, le projet vise à : structurer une gestion claire des rôles (apprenants, formateurs, administrateurs) ; constituer une bibliothèque pédagogique comprenant au moins 80 \% de documents textuels structurés ; permettre la publication de cours vidéo, supports PDF et sessions en direct ; proposer un abonnement mensuel adapté au marché local ; et intégrer un cursus autonome
+(QCM, mini-jeux) menant à une certification officielle téléversée par l’utilisateur pour valider son niveau.
+% plan de rapport
+
+Pour y répondre, notre rapport s’articulera autour de quatre grandes parties. La première partie, Le premier chapitre, consacré à l'état de l'art, présente les revues littéraires, les concepts techniques, transversaux et métier mobilisés, ainsi qu'une analyse comparative des solutions concurrentes directes et indirectes existantes. La deuxième partie détaillera la méthodologie que nous avons adoptée pour concevoir et structurer notre projet. La troisième partie sera dédiée à l’implémentation technique de l’application, incluant les choix technologiques, le développement des différentes fonctionnalités et les tests réalisés. Enfin, la quatrième partie exposera les perspectives d’évolution du projet, en envisageant les améliorations possibles ainsi que les conditions de déploiement à plus grande échelle dans le contexte camerounais.
+% =========================================================
+\chapter{Concept et état de l'art}
+\label{chap:concept}
+% =========================================================
+
+\section{Revue littéraire}
+\noindent
+Avant de définir notre solution, il convient d'examiner ce que la communauté académique
+et les institutions de référence ont déjà produit sur les thématiques qui fondent notre
+projet. Cette revue s'articule autour de quatre axes complémentaires : l'évolution
+historique de l'enseignement à distance et l'émergence du numérique éducatif,
+l'apprentissage mobile comme nouveau paradigme pédagogique, les technologies
+spécifiquement développées pour l'apprentissage des langues, et enfin les opportunités
+et contraintes propres au déploiement du numérique éducatif en contexte africain.
+Chacun de ces axes permet d'identifier, progressivement, les lacunes auxquelles notre solution entend répondre.
+ 
+% ── Axe 1 ────────────────────────────────────────────────────────────────────
+\begin{enumerate}
+    \item \textbf{L'évolution historique de l'enseignement à distance et l'émergence
+    \item du numérique éducatif :}
+\end{enumerate}
+ 
+\noindent
+La réflexion sur l'enseignement à distance remonte aux travaux fondateurs de
+Philip H. Coombs, directeur de l'Institut International de Planification de
+l'Éducation (IIPE) de l'UNESCO à Paris, qui identifiait dès 1968 une crise mondiale
+de l'éducation liée à l'inadéquation entre une offre de formation traditionnelle
+rigide et une demande sociale croissante et diversifiée \parencite{coombs1968}. Cette
+intuition a été systématisée par Michael G. Moore et Greg Kearsley, chercheurs à
+l'Université Penn State aux États-Unis, qui conceptualisent l'apprentissage à distance
+comme un système complet intégrant le contenu, la communication, la technologie et
+l'organisation pédagogique \parencite{moore2012}.
+ 
+\medskip
+\noindent
+Avec l'essor d'Internet dans les années 1990, une nouvelle forme d'enseignement émerge :
+l'apprentissage en ligne, communément désigné par le terme \textit{e-learning}, défini
+par la Commission Européenne (2001) comme \enquote{l'utilisation des nouvelles
+technologies multimédias et d'Internet pour améliorer la qualité de l'apprentissage en
+facilitant l'accès à des ressources et des services} \parencite{commissioneuropeenne2001}.
+Ces travaux établissent un principe fondateur : la technologie ne se substitue pas à
+l'acte pédagogique, mais en reconfigure les modalités, ouvrant la voie à des dispositifs
+hybrides combinant ressources accessibles librement et interactions encadrées en
+temps réel.
+ 
+% ── Axe 2 ────────────────────────────────────────────────────────────────────
+\begin{enumerate}
+    \item \textbf{L'apprentissage mobile comme nouveau paradigme pédagogique :}
+\end{enumerate}
+ 
+\noindent
+L'essor des smartphones a donné naissance à une sous-discipline autonome :
+l'apprentissage mobile. John Traxler, professeur à l'Université de Wolverhampton au
+Royaume-Uni et l'une des figures de référence mondiale du m-learning, en propose l'une
+des définitions les plus citées, le décrivant comme tout dispositif d'apprentissage qui
+tire parti des technologies mobiles et sans fil pour accroître la flexibilité d'accès
+au savoir et aux ressources pédagogiques, indépendamment des contraintes de lieu et de
+temps \parencite{traxler2007}. Agnes Kukulska-Hulme, professeure à l'Open University
+au Royaume-Uni, souligne avec Traxler que le m-learning ne constitue pas un simple
+déplacement de l'e-learning vers un écran plus petit, mais introduit de nouveaux
+paradigmes liés à la contextualisation, à la mobilité physique de l'apprenant et à
+l'immédiateté de l'accès au contenu \parencite{kukulskahulme2005}. Mark Pegrum,
+chercheur à l'Université d'Australie-Occidentale à Perth, prolonge cette réflexion en
+montrant que le téléphone mobile, en Afrique subsaharienne notamment, est souvent le
+premier dispositif numérique accessible à l'apprenant, faisant du m-learning un vecteur
+privilégié d'inclusion éducative \parencite{pegrum2014}. Ces travaux montrent que
+l'application mobile s'impose progressivement comme la forme la plus adaptée de
+diffusion des contenus éducatifs dans les contextes à faible taux d'équipement
+informatique.
+ 
+% ── Axe 3 ────────────────────────────────────────────────────────────────────
+\begin{enumerate}
+    \item \textbf{Les technologies spécifiquement développées pour l'apprentissage des langues}
+\end{enumerate}
+ 
+\noindent
+L'apprentissage des langues assisté par ordinateur, désigné par l'acronyme
+\textbf{CALL} (\textit{Computer-Assisted Language Learning}), fait l'objet d'une
+littérature scientifique abondante depuis les années 1980. Mark Warschauer, professeur
+à l'Université de Californie à Irvine aux États-Unis, et Deborah Healey, chercheuse à
+l'Université d'Oregon, proposent une périodisation en trois phases : comportementaliste,
+communicative et intégrative \parencite{warschauer1998}. Cette dernière phase est
+caractérisée par l'usage d'Internet et des médias authentiques pour créer des situations
+d'immersion linguistique. Carol Chapelle, professeure à l'Université d'État de l'Iowa
+aux États-Unis, montre que les environnements CALL les plus efficaces sont ceux qui
+combinent un apport de contenu compréhensible, une interaction significative et une
+rétroaction immédiate \parencite{chapelle2001}. Avec la généralisation des smartphones,
+le CALL a évolué vers le \textbf{MALL} (\textit{Mobile-Assisted Language Learning}).
+Nicky Hockly, directrice pédagogique au Consultants-E, organisme de formation basé au
+Royaume-Uni, souligne que cette évolution transforme l'apprentissage des langues en une
+activité distribuée dans le temps et l'espace, permettant des séances courtes et
+régulières \parencite{hockly2013}.
+ 
+\medskip
+\noindent
+Sur le plan des standards pédagogiques, le Cadre Européen Commun de Référence pour les
+Langues, publié en 2001 par le Conseil de l'Europe à Strasbourg, constitue aujourd'hui
+le référentiel dominant pour l'enseignement et l'évaluation des langues à l'échelle
+internationale \parencite{conseileurope2001}. Il définit six niveaux de compétence,
+de A1 à C2, selon des descripteurs précis portant sur la compréhension, l'expression
+et l'interaction. Brian North, chercheur suisse ayant contribué directement à
+l'élaboration du CECRL au sein du Conseil de l'Europe, souligne que l'adoption de ce
+cadre facilite la reconnaissance internationale des compétences linguistiques et garantit
+une cohérence pédagogique entre apprenants, formateurs et institutions à travers le
+monde \parencite{north2014}.
+ 
+% ── Axe 4 ────────────────────────────────────────────────────────────────────
+\begin{enumerate}
+    \item \textbf{Le numérique éducatif en contexte africain : opportunités et contraintes}
+\end{enumerate}
+ 
+\noindent
+Le rapport de l'Union Internationale des Télécommunications, organisme spécialisé des
+Nations Unies dont le siège est à Genève, indique dans son édition 2023 qu'avec un taux
+de pénétration du mobile dépassant 80\,\% en Afrique subsaharienne, le téléphone
+portable est devenu l'interface numérique dominante de la région, largement devant les
+ordinateurs personnels \parencite{uit2023}. La GSMA, association mondiale des opérateurs
+de téléphonie mobile dont le siège est à Londres, relève dans son rapport 2023 que si
+la couverture réseau 2G et 3G est généralisée sur le continent, l'accès à la 4G reste
+inégal et la connexion haut débit demeure coûteuse pour la majorité des utilisateurs
+\parencite{gsma2023}. Ces contraintes ont des implications directes sur la conception
+des plateformes éducatives destinées à ce marché : les applications doivent être
+optimisées pour fonctionner dans des conditions de faible bande passante, privilégier
+les formats de contenu structurés et légers, et offrir une expérience fluide sur des
+appareils d'entrée de gamme.
+ 
+\medskip
+\noindent
+John Traxler et Agnes Kukulska-Hulme montrent par ailleurs que l'accessibilité
+financière, notamment les frais d'accès et le coût des données mobiles, est souvent le
+premier facteur d'adoption ou de rejet d'une solution éducative numérique dans les pays
+du Sud \parencite{traxler2019}. Sheila Isaacs, spécialiste du numérique éducatif au
+sein de l'UNESCO à Paris, souligne quant à elle que les initiatives éducatives
+numériques les plus durables en Afrique sont celles qui impliquent des acteurs locaux,
+notamment des formateurs ancrés dans leur communauté et des contenus culturellement
+pertinents, plutôt que de simplement transposer des solutions conçues pour d'autres
+marchés \parencite{isaacs2012}.
+ 
+%══════════════════════════════════════════════════════════════════
+\section*{Concept Technique}
+% ══════════════════════════════════════════════════════════════════ 
+\noindent
+La conception d'une plateforme mobile d'apprentissage des langues repose sur un ensemble
+de technologies distinctes dont la maîtrise conditionne directement la qualité, la
+fiabilité et l'évolutivité de la solution. Cette section présente les grands concepts
+techniques qui structurent ce type de projet : le développement mobile multiplateforme,
+les architectures backend, et le streaming vidéo adaptatif. Pour chacun de ces domaines,
+il s'agit d'établir l'état des connaissances disponibles avant de préciser, dans les
+chapitres suivants, les choix retenus pour ce projet.
+% ── Concept 1 ────────────────────────────────────────────────────────────────
+\begin{enumerate}
+    \item \textbf{Le développement mobile multiplateforme}
+\end{enumerate}
+ 
+\noindent
+Le développement mobile désigne l'ensemble des pratiques et outils permettant de
+concevoir des applications destinées aux appareils mobiles, principalement les
+smartphones et tablettes fonctionnant sous iOS ou Android. Historiquement, le
+développement natif consistait à écrire deux bases de code distinctes : l'une en Swift
+ou Objective-C pour iOS, l'autre en Java ou Kotlin pour Android. Cette approche garantit
+des performances optimales et un accès complet aux fonctionnalités matérielles de
+l'appareil, mais elle implique un coût de développement et de maintenance
+significativement plus élevé.
+ 
+\medskip
+\noindent
+Face à ce constat, une seconde approche a émergé : le développement multiplateforme,
+qui permet de produire une application unique fonctionnant sur les deux systèmes
+d'exploitation à partir d'une seule base de code. Parmi les solutions les plus répandues
+figurent React Native, développé et maintenu par Meta à Menlo Park en Californie,
+Flutter, framework open-source développé par Google à Mountain View en Californie, et
+Xamarin, plateforme initialement fondée à San Francisco et aujourd'hui intégrée dans
+l'écosystème Microsoft. Ces frameworks reposent sur des philosophies différentes :
+React Native traduit des composants JavaScript en éléments d'interface natifs, tandis
+que Flutter compile vers du code natif ARM à partir du langage Dart.
+\textcite{wohlin2012}, dans leurs travaux sur l'ingénierie logicielle publiés chez
+Springer, soulignent que le choix entre natif et multiplateforme doit être guidé par
+les contraintes de délai, de budget et de complexité fonctionnelle du projet concerné.
+ 
+% ── Concept 2 ────────────────────────────────────────────────────────────────
+\begin{enumerate}
+    \item \textbf{Les architectures backend}
+\end{enumerate}
+ 
+\noindent
+Le backend d'une application mobile désigne l'ensemble des composants serveur qui
+traitent la logique métier, gèrent les données et exposent des services aux clients
+mobiles. La conception de ces composants s'est profondément transformée avec l'essor
+des architectures orientées services, et plus particulièrement des \ac{api} REST
+(Representational State Transfer).
+ 
+\medskip
+\noindent
+REST est un style d'architecture défini par Roy Fielding, chercheur à l'Université de
+Californie à Irvine, dans sa thèse de doctorat publiée en 2000 \parencite{fielding2000}.
+Il repose sur un ensemble de contraintes architecturales garantissant la statelessness
+des échanges, la séparation claire entre client et serveur, et l'uniformité des
+interfaces de communication via le protocole HTTP. Les \ac{api} REST sont aujourd'hui le
+standard dominant pour l'exposition de services web, utilisées par la majorité des
+grandes plateformes numériques mondiales. Concernant les frameworks backend, Spring Boot,
+développé par VMware et maintenu par la communauté Spring à travers la Spring Foundation,
+s'est imposé comme l'une des solutions les plus utilisées dans l'écosystème Java pour
+la construction d'\ac{api} REST robustes et sécurisées. Il intègre nativement des modules de
+sécurité, de persistance des données et de gestion des dépendances qui en font un choix
+privilégié pour les applications d'envergure professionnelle.
+ 
+% ── Concept 3 ────────────────────────────────────────────────────────────────
+\begin{enumerate}
+    \item \textbf{Le streaming vidéo adaptatif}
+\end{enumerate}
+ 
+\noindent
+Le streaming vidéo désigne la transmission en continu de contenu audiovisuel via un
+réseau, sans nécessiter le téléchargement préalable du fichier dans son intégralité.
+Deux modalités principales coexistent : le streaming à la demande, qui permet la lecture
+d'un contenu préenregistré à tout moment, et le streaming en direct, qui diffuse un
+contenu en temps réel depuis une source vers un ou plusieurs destinataires
+simultanément.
+ 
+\medskip
+\noindent
+Le protocole \ac{hls} (\textit{HTTP Live Streaming}), développé par Apple Inc. à
+Cupertino en Californie et publié en 2009, est aujourd'hui le standard dominant pour le
+streaming adaptatif. Il repose sur le découpage du flux vidéo en segments de courte
+durée, chacun encodé à plusieurs niveaux de qualité, le lecteur sélectionnant
+automatiquement le niveau le mieux adapté aux conditions réseau disponibles à l'instant
+\parencite{ietf2017}. Pour le streaming en direct interactif, des solutions spécialisées
+ont émergé telles qu'Agora\glsadd{agora}, entreprise fondée à Santa Clara en Californie, qui propose
+un \ac{sdk} (\textit{Software Development Kit}) optimisé pour les communications audio et
+vidéo en temps réel à faible latence, y compris dans des conditions de réseau dégradé.
+Cette caractéristique est documentée dans les études de performance publiées par Agora
+(2022), qui montrent des latences inférieures à 400 millisecondes même sur des connexions
+3G \parencite{agora2022}.
+
+\section{Concept transversal}
+Au-delà des aspects techniques et économiques, un projet d'apprentissage en ligne mobilise plusieurs préoccupations transversales qui traversent l'ensemble de ses couches.
+L'accessibilité d'abord, qui exige que l'interface, les contenus pédagogiques et les médias (vidéos sous-titrées, contrastes adaptés) restent utilisables par tous, y compris les personnes en situation de handicap.
+L'internationalisation ensuite, qui suppose une conception capable d'accueillir plusieurs langues d'interface et de contenu sans refonte structurelle.
+La conformité réglementaire : acceptation des conditions générales, droit à l'effacement des données personnelles et protection de la vie privée selon les principes du \ac{rgpd}, qui s'applique aussi bien au stockage des données qu'à leur traitement et à leur transmission.
+Enfin, l'inclusion financière, particulièrement déterminante en Afrique francophone, où une grande partie de la population n'a pas accès aux services bancaires classiques : le paiement par \gls{mobilemoney} devient alors un facteur d'accessibilité au même titre que l'interface graphique.
+
+\section{Concept métier}
+Sur le plan métier, une plateforme d'apprentissage des langues s'inscrit dans le modèle économique de la marketplace pédagogique à deux faces, qui met en relation deux catégories d'utilisateurs aux besoins complémentaires : d'un côté des apprenants en quête de formation linguistique encadrée, de l'autre des formateurs certifiés souhaitant monétiser leur expertise dans un cadre structuré. La création de valeur repose sur un effet de réseau : plus le nombre d'apprenants croît, plus la plateforme devient attractive pour les formateurs, et inversement.
+Sur le plan économique, le modèle privilégie un abonnement mensuel récurrent à plusieurs paliers plutôt qu'une vente à l'unité. Cette logique garantit des revenus prévisibles et un engagement durable des utilisateurs, tout en rendant la formation accessible à un public qui ne pourrait pas en assumer le coût en une seule fois. La proposition de valeur centrale combine deux dimensions complémentaires : un cursus autonome ludique (jeux éducatifs, QCM, exercices d'auto-évaluation) pour la pratique régulière, et des séances en direct encadrées par des formateurs certifiés pour l'interaction humaine et la pratique orale — un double cursus rarement réuni dans les solutions existantes.
+Ce modèle d'affaires est synthétisé dans le Lean Canvas présenté à la figure~\ref{fig:lean-canvas} ci-dessous, qui formalise les neuf dimensions structurantes du projet : les problèmes adressés, les segments de clientèle visés (étudiants, professionnels en mobilité, candidats à l'expatriation), la proposition de valeur unique, la solution proposée, les canaux de distribution, les avantages concurrentiels, les indicateurs clés, la structure de coûts et les sources de revenus.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth,keepaspectratio]{lean_canvas.png}
+\caption{Lean Canvas du projet.}
+\label{fig:lean-canvas}
+\end{figure}
+
+\section{Concurrents réels (directs et indirects)}
+L'étude de l'environnement concurrentiel révèle deux grandes familles d'acteurs sur le marché de l'apprentissage des langues.
+
+Les \textbf{concurrents directs} sont les acteurs qui répondent au même besoin avec une approche similaire --- l'application mobile d'apprentissage autonome. On y trouve \textbf{Duolingo}, leader mondial fondé sur la gamification et un modèle freemium, qui touche plus de 500 millions d'utilisateurs ; \textbf{Babbel}, positionnée sur un apprentissage plus structuré et payant avec des leçons courtes axées sur la conversation ; et \textbf{Busuu}, qui mise sur une dimension communautaire en faisant corriger les exercices par des locuteurs natifs. Bien qu'efficaces pour l'auto-apprentissage, ces plateformes partagent une limite commune~: elles ne proposent ni encadrement humain par des formateurs certifiés, ni séances en direct, ni certification reconnue.
+
+Les \textbf{concurrents indirects} répondent au même besoin par d'autres moyens. On distingue d'une part les \textbf{instituts présentiels} de référence (Goethe-Institut, Alliance française) qui offrent un enseignement humain de qualité et délivrent des certifications officielles, mais restent géographiquement concentrés dans les grandes capitales et imposent des tarifs élevés ; d'autre part les \textbf{plateformes de cours particuliers en ligne} (italki, Preply) qui mettent en relation apprenants et professeurs pour des séances individuelles facturées à l'heure, sans toutefois proposer de cursus structuré, ni d'évaluations standardisées, ni d'adaptation au contexte de paiement africain.
+
+Cette double cartographie met en lumière un \textbf{espace non couvert}~: aucun acteur ne combine simultanément la flexibilité d'une application mobile, l'encadrement par des formateurs certifiés, un cursus structuré aligné sur un référentiel reconnu, et une adaptation aux contraintes économiques et techniques du public africain francophone.
+
+\section{Bilan}
+Le tableau~\ref{tab:comparatif} ci-dessous présente une comparaison \emph{objective} des solutions existantes face à la solution envisagée, fondée sur la présence ou l'absence de fonctionnalités vérifiables, et non sur des appréciations subjectives.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Comparatif objectif des solutions existantes et de la solution envisagée.}
+\label{tab:comparatif}
+\begin{tabularx}{\linewidth}{Xccccc>{\columncolor{srgreen!10}}c}
+\toprule
+\textbf{Critère vérifiable} & \textbf{Duolingo} & \textbf{Babbel} & \textbf{Busuu} & \textbf{italki} & \textbf{Notre solution} \\
+\midrule
+Formateurs humains certifiés & \non & \non & \non & \oui & \oui \\
+Sessions de streaming en direct & \non & \non & \non & \oui & \oui \\
+Cursus structuré aligné CECRL & \non & \oui & \non & \non & \oui \\
+Paiement Mobile Money (FCFA) & \non & \non & \non & \non & \oui \\
+Certification numérique signée & \non & \non & \non & \non & \oui \\
+Cursus interne ludique (QCM, jeux) & \oui & \oui & \oui & \non & \oui \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Ce comparatif, fondé sur des critères factuels, met en évidence un constat clair~: \textbf{aucune solution existante ne réunit l'ensemble des critères identifiés}. Les plateformes mobiles populaires (Duolingo, Babbel, Busuu) offrent un parcours autonome mais sans encadrement humain ni certification reconnue ; les plateformes de cours particuliers (italki) apportent l'humain mais sans cursus structuré ni adaptation au contexte de paiement local. La solution envisagée se positionne précisément sur ce vide en combinant les forces des deux approches, tout en intégrant les contraintes spécifiques au public africain francophone.
+% =========================================================
+\chapter{Méthodologie de développement}
+\label{chap:metho}
+% =========================================================
+
+\section{Analyse des besoins}
+L'analyse des besoins constitue une étape déterminante du cycle de conception~: elle consiste à recenser, de façon précise et structurée, ce que les utilisateurs attendent du système avant d'engager toute décision technique. Une spécification rigoureuse à ce stade limite les ambiguïtés, oriente la modélisation \ac{uml} et sert de référence pour valider le produit final. Nous distinguons classiquement deux catégories de besoins~: les \textbf{besoins fonctionnels}, qui décrivent les services que le système doit rendre, et les \textbf{besoins non fonctionnels}, qui en caractérisent les qualités et les contraintes (performance, sécurité, disponibilité, etc.).
+
+\subsection{Besoins fonctionnels}
+Les besoins fonctionnels expriment l'ensemble des fonctionnalités que le système doit offrir. Ils sont structurés autour des quatre acteurs principaux identifiés lors de l'étude~: le \textbf{Visiteur} (utilisateur non connecté qui découvre la plateforme et s'inscrit), l'\textbf{Apprenant} (cœur de cible qui suit les cursus), le \textbf{Formateur} (qui produit et anime les contenus) et l'\textbf{Administrateur} (qui supervise et régule la plateforme). À ceux-ci s'ajoutent des acteurs systèmes externes (service de paiement, plateforme de streaming, service d'emails) avec lesquels l'application communique.
+
+Le tableau~\ref{tab:rf} ci-dessous détaille les besoins fonctionnels, identifiés par un code (RF) et regroupés par module fonctionnel, afin d'assurer leur traçabilité avec les cas d'utilisation présentés au chapitre de conception.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Besoins fonctionnels détaillés de la solution.}
+\label{tab:rf}
+\begin{tabularx}{\linewidth}{l X}
+\toprule
+\textbf{Code} & \textbf{Besoin fonctionnel} \\
+\midrule
+\multicolumn{2}{@{}l}{\textit{\textbf{Gestion des comptes et des accès}}}\\
+RF1 & Permettre à un visiteur de s'inscrire et de vérifier son adresse email. \\
+RF2 & Permettre à un utilisateur de s'authentifier et de gérer son profil. \\
+RF3 & Permettre à un visiteur de postuler comme formateur en déposant ses diplômes. \\
+\addlinespace
+\multicolumn{2}{@{}l}{\textit{\textbf{Apprentissage et cursus interne}}}\\
+RF4 & Permettre à l'apprenant de consulter le catalogue des cours par niveau CECRL. \\
+RF5 & Permettre la lecture des vidéos et la consultation/le téléchargement des PDF selon le palier. \\
+RF6 & Permettre la réalisation des QCM et mini-jeux, avec conservation de l'historique. \\
+RF7 & Permettre de solliciter le tuteur IA pour expliquer une notion de cours ou une réponse de QCM. \\
+RF8 & Permettre à l'apprenant de suivre sa progression et de consulter ses certificats. \\
+\addlinespace
+\multicolumn{2}{@{}l}{\textit{\textbf{Sessions live et communication}}}\\
+RF9 & Permettre à l'apprenant de participer aux sessions live et de revoir les replays (selon palier). \\
+RF10 & Permettre au formateur de programmer et d'animer une session live. \\
+RF11 & Permettre l'échange de messages entre apprenants et formateurs. \\
+RF12 & Permettre à l'apprenant de noter et d'évaluer un formateur. \\
+\addlinespace
+\multicolumn{2}{@{}l}{\textit{\textbf{Abonnement et paiement}}}\\
+RF13 & Permettre de souscrire, renouveler ou annuler un abonnement. \\
+RF14 & Permettre le paiement sécurisé via Mobile Money ou carte bancaire. \\
+\addlinespace
+\multicolumn{2}{@{}l}{\textit{\textbf{Production de contenus (formateur)}}}\\
+RF15 & Permettre au formateur de créer un cours (vidéo + PDF) et de concevoir des évaluations. \\
+RF16 & Permettre au formateur de suivre les apprenants qui lui sont rattachés. \\
+\addlinespace
+\multicolumn{2}{@{}l}{\textit{\textbf{Administration et supervision}}}\\
+RF17 & Permettre à l'administrateur de valider/refuser les candidatures et d'inviter des formateurs. \\
+RF18 & Permettre la gestion des utilisateurs et des paliers, ainsi que la modération des contenus. \\
+RF19 & Permettre l'émission et la révocation des certificats officiels. \\
+RF20 & Permettre la consultation d'un tableau de bord présentant les indicateurs clés (KPIs). \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+À titre de synthèse, le tableau~\ref{tab:besoins} ci-dessous récapitule ces besoins fonctionnels selon le rôle d'utilisateur concerné.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Synthèse des besoins fonctionnels par rôle.}
+\label{tab:besoins}
+\begin{tabularx}{\linewidth}{l X}
+\toprule
+\textbf{Rôle} & \textbf{Besoins fonctionnels principaux} \\
+\midrule
+Visiteur & Consultation de l'accueil et des paliers, inscription, candidature formateur. \\
+Apprenant & Authentification, choix de palier, paiement, consultation des cours, lecture vidéo et PDF, sessions live, exercices interactifs et tuteur IA, messagerie, suivi de progression, certification. \\
+Formateur & Candidature avec dépôt de diplômes, création de cours (vidéo + PDF), programmation et animation de sessions live, création d'évaluations, suivi des apprenants, communication. \\
+Administrateur & Validation des candidatures, gestion des utilisateurs et des paliers, modération des contenus, émission et révocation des certificats, tableau de bord (KPIs). \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Besoins non fonctionnels}
+Le système doit garantir une \textbf{performance} élevée (réponse de l'\ac{api} en moins de 500~ms pour 95~\% des requêtes), une \textbf{sécurité} robuste (HTTPS/\ac{tls}, authentification \ac{jwt}, hachage \gls{bcrypt}, journalisation d'audit), une \textbf{disponibilité} de 99~\%, une \textbf{scalabilité} permettant la montée en charge, ainsi que l'\textbf{accessibilité} (WCAG~AA) et la \textbf{conformité} réglementaire (type \ac{rgpd}).
+
+\section{Conception}
+La phase de conception consiste à traduire les besoins exprimés en un modèle rigoureux et exploitable. Elle débute par la formalisation des \textbf{règles de gestion}, qui fixent les contraintes métier que le système doit respecter, puis se poursuit par la modélisation en \ac{uml} à travers quatre diagrammes complémentaires~: le diagramme de cas d'utilisation (vue fonctionnelle), le diagramme de classes (vue statique), le diagramme de séquence (vue dynamique d'un scénario) et le diagramme d'activité (vue d'un processus métier).
+
+\subsection{Règles de gestion}
+Les règles de gestion expriment les contraintes du domaine, indépendamment de toute technologie. Elles servent de fondation aux diagrammes qui suivent et garantissent la cohérence du comportement du système. Le tableau~\ref{tab:regles-gestion} ci-dessous présente les principales règles retenues pour notre solution.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Principales règles de gestion de la solution.}
+\label{tab:regles-gestion}
+\begin{tabularx}{\linewidth}{l X}
+\toprule
+\textbf{Code} & \textbf{Règle de gestion} \\
+\midrule
+RG1 & Un utilisateur possède un et un seul rôle~: Apprenant, Formateur ou Administrateur. \\
+RG2 & L'adresse email est unique et doit être vérifiée avant l'activation du compte. \\
+RG3 & Un apprenant ne possède qu'un seul abonnement actif à la fois. \\
+RG4 & La souscription à un abonnement n'est effective qu'après un paiement réussi. \\
+RG5 & Après plusieurs échecs de paiement consécutifs, l'abonnement passe à l'état inactif. \\
+RG6 & Une candidature de formateur doit être validée par l'administrateur avant toute publication de cours. \\
+RG7 & Un formateur est rattaché à un seul niveau CECRL et ne crée de cours que pour ce niveau. \\
+RG8 & Tout cours publié comporte obligatoirement une vidéo \emph{et} un support PDF associé. \\
+RG9 & Le nombre d'apprenants suivis par un formateur ne peut dépasser le quota fixé par l'administrateur. \\
+RG10 & L'accès aux fonctionnalités (lecture PDF, vidéos, sessions live) dépend du palier d'abonnement souscrit. \\
+RG11 & Une session live requiert le palier adéquat~; le jeton d'accès au canal de streaming est temporaire. \\
+RG12 & Un certificat n'est délivré qu'après validation des critères du niveau et est émis uniquement par l'administrateur. \\
+RG13 & Le tuteur IA fournit une aide à la compréhension (cours, correction de QCM) sans délivrer de note ni de certificat officiel. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Diagramme de cas d'utilisation}
+Le diagramme de cas d'utilisation offre une vue fonctionnelle du système~: il identifie les \textbf{acteurs} et les \textbf{fonctionnalités} (cas d'utilisation) que chacun peut déclencher. On y distingue les acteurs humains (Visiteur, Apprenant, Formateur, Administrateur) et les acteurs systèmes externes (système de paiement, plateforme de streaming Agora, service d'envoi d'emails). Il met également en évidence les relations d'\emph{inclusion} — un cas en appelle systématiquement un autre, par exemple \og Souscrire un abonnement \fg{} inclut \og Payer \fg{} — et d'\emph{extension}, par laquelle un cas optionnel enrichit un cas de base, comme \og Prendre des notes \fg{} qui étend \og Consulter les cours \fg{}. Enfin, une relation de \emph{généralisation} factorise les fonctionnalités communes (authentification, gestion du profil) au sein d'un acteur abstrait \og Utilisateur \fg{} dont héritent les trois rôles. La figure~\ref{fig:cas-utilisation} ci-dessous présente ce diagramme.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth,keepaspectratio]{cas_utilisation.png}
+\caption{Diagramme de cas d'utilisation de la solution.}
+\label{fig:cas-utilisation}
+\end{figure}
+
+\subsection{Diagramme de classes}
+Le diagramme de classes décrit la structure \textbf{statique} du système~: les classes principales, leurs attributs et leurs méthodes, ainsi que les relations qui les unissent (héritage, association, composition) accompagnées de leurs cardinalités. La classe abstraite \og Utilisateur \fg{} y est spécialisée en \og Apprenant \fg{}, \og Formateur \fg{} et \og Administrateur \fg{}, et les principales entités du domaine (Cours, Abonnement, Paiement, Session live, QCM, Certificat\ldots) y apparaissent avec leurs liens. Ce diagramme constitue le socle direct de la base de données et des objets manipulés par l'application. La figure~\ref{fig:classes} ci-dessous représente le diagramme de classes obtenu.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth,keepaspectratio]{diagramme_classes.png}
+\caption{Diagramme de classes de la solution.}
+\label{fig:classes}
+\end{figure}
+
+\subsection{Diagramme de séquence : authentification}
+Le diagramme de séquence décrit la vue \textbf{dynamique} du système en détaillant le déroulement temporel d'un scénario précis. Nous illustrons ici le processus d'\textbf{authentification} d'un apprenant. Le diagramme fait apparaître les échanges de messages entre l'interface, le contrôleur d'authentification et la base de données, ainsi que les deux issues possibles — identifiants valides ou invalides — modélisées par un fragment alternatif (\textit{alt}). Les flèches pleines représentent les appels et les flèches en pointillés les réponses. La figure~\ref{fig:sequence-auth} ci-dessous présente ce scénario.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\linewidth,keepaspectratio]{sequence_authentification.png}
+\caption{Diagramme de séquence du cas d'utilisation \og S'authentifier \fg{}.}
+\label{fig:sequence-auth}
+\end{figure}
+
+\subsection{Diagramme d'activité : souscription à un abonnement}
+Le diagramme d'activité représente l'enchaînement des actions d'un \textbf{processus métier} sous la forme d'un flux. Nous modélisons ici la \textbf{souscription à un abonnement}, depuis le choix du palier jusqu'à l'activation des fonctionnalités, en passant par le nœud de décision relatif au paiement (réussi ou échoué) et la boucle de réessai en cas d'échec. Les rectangles arrondis figurent les actions, les losanges les décisions, et les conditions sont portées par les transitions sortantes. La figure~\ref{fig:activite-souscription} ci-dessous illustre ce processus.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\linewidth,keepaspectratio]{activite_souscription.png}
+\caption{Diagramme d'activité du processus de souscription à un abonnement.}
+\label{fig:activite-souscription}
+\end{figure}
+
+\section{Architecture logique}
+L'architecture logique décrit l'organisation interne du système en couches indépendantes, chacune assumant une responsabilité précise. Cette approche en couches (\textit{layered architecture}) présente plusieurs avantages~: une séparation claire des préoccupations, une maintenance facilitée, la possibilité de faire évoluer ou de remplacer une couche sans impacter les autres, et une meilleure testabilité. Notre solution s'organise ainsi en trois couches principales — présentation, métier et données — auxquelles s'ajoutent les services externes sollicités via des interfaces dédiées. La figure~\ref{fig:archi} ci-dessous présente cette organisation ainsi que les protocoles de communication entre les blocs.\glsadd{agora}\glsadd{fcm}\glsadd{jpa}\glsadd{sql}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  node distance=0.3cm and 0.5cm,
+  every node/.style={font=\scriptsize},
+  block/.style={rectangle, draw=srgreen, thick, fill=srgreen!5,
+                rounded corners, minimum width=2.4cm, minimum height=0.55cm,
+                align=center, inner sep=2pt},
+  ext/.style={rectangle, draw=sryellow!90!black, thick, fill=sryellow!20,
+              rounded corners, minimum width=2.1cm, minimum height=0.5cm,
+              align=center, inner sep=2pt},
+  arrow/.style={-Latex, thick, draw=srgray}
+]
+\node[block] (mobile) {Application mobile\\ \tiny React Native};
+\node[block, below=of mobile] (api) {API REST\\ \tiny Spring Boot + JWT};
+\node[block, below=of api] (db) {Base de données + /storage};
+\node[ext, right=of mobile] (agora) {Agora SDK};
+\node[ext, right=of api]    (pay)   {Stripe + MoMo};
+\node[ext, right=of db]     (mail)  {SMTP / FCM};
+\draw[arrow] (mobile) -- node[right]{\tiny HTTPS} (api);
+\draw[arrow] (api) -- node[right]{\tiny JPA} (db);
+\draw[arrow] (mobile) -- node[above]{\tiny RTC} (agora);
+\draw[arrow] (api) -- node[above]{\tiny REST} (pay);
+\draw[arrow] (api) -- node[above]{\tiny SMTP} (mail);
+\end{tikzpicture}
+\caption{Architecture logique en couches de la solution.}
+\label{fig:archi}
+\end{figure}
+
+La \textbf{couche présentation} correspond à l'application mobile développée en React Native et déployée sur iOS et Android. Elle prend en charge l'interface et l'expérience utilisateur et ne contient aucune logique métier sensible~; elle communique avec le serveur exclusivement via des requêtes HTTPS sécurisées.
+
+La \textbf{couche métier} repose sur une \ac{api} REST construite avec Spring Boot. Elle centralise la logique applicative~: authentification par \ac{jwt}, application des règles de gestion, orchestration des traitements et exposition des services aux clients mobiles. Elle constitue l'unique intermédiaire entre la couche présentation et les ressources du système, ce qui renforce la sécurité et la cohérence des accès.
+
+La \textbf{couche données} assure la persistance des informations~: une base de données (SQLite pour le \ac{mvp}, avec une migration prévue vers PostgreSQL à la montée en charge) stocke les données structurées, tandis qu'un espace de stockage dédié héberge les fichiers volumineux (vidéos, supports PDF). L'accès aux données depuis la couche métier s'effectue via \ac{jpa}.
+
+Enfin, les \textbf{services externes} sont sollicités selon les besoins~: Agora pour le streaming audio/vidéo en temps réel (\ac{rtc}), Stripe et le Mobile Money pour le traitement des paiements, et les services SMTP/\ac{fcm} pour l'envoi d'emails et de notifications. Leur isolement derrière des interfaces dédiées permet de les remplacer sans refonte du reste du système.
+
+\section{Bilan}
+Ce chapitre a déroulé la démarche méthodologique du projet de manière progressive et cohérente~: partant de l'analyse des besoins fonctionnels et non fonctionnels, il a formalisé les règles de gestion du domaine, traduit ces dernières en modèles \ac{uml} (diagrammes de cas d'utilisation, de classes, de séquence et d'activité), puis défini une architecture logique en couches adaptée aux contraintes du contexte africain. Cette progression garantit que chaque choix de conception découle directement d'un besoin identifié, et non d'une décision arbitraire.
+
+Pour situer la solution obtenue par rapport à l'existant, le tableau~\ref{tab:services} ci-dessous compare, de façon objective, les services offerts par les principales solutions du marché et par notre solution.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Comparatif objectif des services : existants et notre solution.}
+\label{tab:services}
+\begin{tabularx}{\linewidth}{Xcccc}
+\toprule
+\textbf{Service proposé} & \textbf{Duolingo} & \textbf{Babbel} & \textbf{italki} & \textbf{Notre solution} \\
+\midrule
+Cours vidéo + support PDF       & \non & \oui & \non & \oui \\
+Sessions live de groupe         & \non & \non & \oui & \oui \\
+Exercices interactifs           & \oui & \oui & \non & \oui \\
+Paiement local (Mobile Money)   & \non & \non & \non & \oui \\
+Certification signée            & \non & \non & \non & \oui \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Ce comparatif confirme que notre solution est la seule à réunir simultanément l'ensemble des services attendus par notre cible — cours structurés, encadrement humain en direct, exercices interactifs, paiement local et certification signée. La conception étant désormais établie et validée, le chapitre suivant est consacré à l'\textbf{implémentation} de la solution~: choix technologiques, développement des fonctionnalités et résultats obtenus.
+
+% =========================================================
+\chapter{Implémentation}
+\label{chap:impl}
+% =========================================================
+
+Après avoir établi la conception du système au chapitre précédent, ce chapitre est consacré à sa réalisation concrète. C'est ici que se dévoile le produit abouti~: l'application \textbf{SprachReise} — littéralement \enquote{voyage linguistique} en allemand — qui matérialise l'ensemble des choix de conception présentés jusqu'à présent. Nous exposons d'abord les technologies retenues et leur justification, puis nous présentons les résultats obtenus à travers les principaux écrans de l'application pleinement fonctionnelle, avant de tracer les perspectives d'évolution du projet.
+
+\section{Choix de technologies}
+Le choix des technologies repose sur des critères objectifs~: la maturité de l'écosystème, la performance, le coût, et surtout la \textbf{courbe d'apprentissage} de l'équipe. Une technologie performante mais difficile à maîtriser dans le temps imparti aurait compromis le projet~; nous avons donc privilégié des outils à la fois robustes et rapides à prendre en main. Le tableau~\ref{tab:techno} ci-dessous présente la pile retenue et sa justification.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Pile technologique retenue et justification.}
+\label{tab:techno}
+\begin{tabularx}{\linewidth}{l X}
+\toprule
+\textbf{Technologie} & \textbf{Justification (dont courbe d'apprentissage)} \\
+\midrule
+React Native (Expo)        & Code unique iOS/Android~; courbe d'apprentissage douce pour une équipe maîtrisant JavaScript. \\
+Java 17 + Spring Boot 3    & Écosystème mature et très documenté~; courbe d'apprentissage progressive, nombreuses ressources. \\
+SQLite $\rightarrow$ PostgreSQL & Prise en main immédiate pour le MVP~; migration prévue à la montée en charge. \\
+Agora SDK                  & SDK clé en main réduisant fortement la courbe d'apprentissage du streaming temps réel. \\
+JWT + BCrypt               & Standards largement documentés~; intégration rapide et sécurisée. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Résultats}
+L'application SprachReise a été entièrement développée et l'ensemble des fonctionnalités spécifiées est aujourd'hui opérationnel. Cette section suit le parcours réel d'utilisation~: nous présentons d'abord le premier écran affiché au lancement et l'inscription, puis nous détaillons les trois interfaces correspondant à chaque rôle — apprenant, formateur et administrateur.
+
+% NOTE : chaque figure ci-dessous référence un fichier image (capture_xxx.png).
+% Conservez uniquement les blocs dont vous possédez réellement la capture
+% et supprimez les autres pour éviter une erreur de compilation.
+
+\subsection{Premier lancement et inscription}
+Au premier lancement, l'application présente un écran de bienvenue introduisant SprachReise et les langues disponibles, puis permet de créer un compte ou de se connecter. La figure~\ref{fig:demarrage} ci-dessous présente ces deux écrans.
+
+\begin{figure}[H]
+\centering
+\includegraphics[height=6cm,keepaspectratio]{capture_demarrage.png}\hspace{1cm}
+\includegraphics[height=6cm,keepaspectratio]{capture_inscription_apprenant.png}
+\caption{Premier lancement~: écran de bienvenue et création de compte.}
+\label{fig:demarrage}
+\end{figure}
+
+\subsection{Interface de l'apprenant}
+L'interface de l'apprenant s'organise autour d'une barre de navigation (Accueil, Cours, Live, Cursus, Profil). L'apprenant y consulte son profil et sa progression, parcourt la bibliothèque de cours par niveau, suit le cursus interne (QCM et mini-jeux), réalise des exercices assistés par le tuteur IA et échange avec son formateur. Les figures~\ref{fig:app1}, \ref{fig:app2} et~\ref{fig:app3} ci-dessous en présentent les principaux écrans.
+
+\begin{figure}[H]
+\centering
+\includegraphics[height=6cm,keepaspectratio]{capture_apprenant_accueil.png}\hfill
+\includegraphics[height=6cm,keepaspectratio]{capture_apprenant_progression.png}\hfill
+\includegraphics[height=6cm,keepaspectratio]{capture_apprenant_bibliotheque.png}
+\caption{Apprenant~: profil, progression et bibliothèque des cours.}
+\label{fig:app1}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[height=6cm,keepaspectratio]{capture_apprenant_cursus.png}\hfill
+\includegraphics[height=6cm,keepaspectratio]{capture_apprenant_qcm.png}\hfill
+\includegraphics[height=6cm,keepaspectratio]{capture_apprenant_exercices.png}
+\caption{Apprenant~: cursus interne, QCM et exercices (avec tuteur IA).}
+\label{fig:app2}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[height=6cm,keepaspectratio]{capture_apprenant_messagerie.png}\hfill
+\includegraphics[height=6cm,keepaspectratio]{capture_apprenant_abonnement1.png}\hfill
+\includegraphics[height=6cm,keepaspectratio]{capture_apprenant_abonnement2.png}
+\caption{Apprenant~: messagerie et choix d'un palier d'abonnement.}
+\label{fig:app3}
+\end{figure}
+
+\subsubsection*{Abonnement et accès aux fonctionnalités}
+L'accès aux fonctionnalités repose sur un abonnement à plusieurs paliers~: certaines fonctions ne sont disponibles qu'après souscription, et l'étendue des services dépend du palier choisi. Pour profiter pleinement de l'application, l'apprenant doit donc souscrire un abonnement payant. Trois paliers mensuels sont proposés, réglables en \ac{fcfa} via le \gls{mobilemoney}~:
+\begin{itemize}[leftmargin=*,nosep]
+\item \textbf{Apprenti} (3\,000~FCFA/mois)~: cursus interne complet, lecture des PDF en ligne et accès aux profils des formateurs.
+\item \textbf{Voyageur} (7\,500~FCFA/mois)~: tout le palier Apprenti, plus les vidéos des cours, le téléchargement des PDF et les évaluations.
+\item \textbf{Erudit} (15\,000~FCFA/mois)~: tout le palier Voyageur, plus les sessions live et replays, les certificats signés et le contact des formateurs.
+\end{itemize}
+
+Au terme de son parcours, lorsqu'il valide les critères d'un niveau, l'apprenant se voit délivrer un certificat~: il reçoit un email de félicitations auquel est joint son certificat officiel au format PDF, également téléchargeable depuis son profil. La figure~\ref{fig:app-cert} ci-dessous présente l'email de certification et le certificat généré.
+
+\begin{figure}[H]
+\centering
+\includegraphics[height=6cm,keepaspectratio]{capture_email_certificat.png}\hspace{1cm}
+\includegraphics[height=6cm,keepaspectratio]{capture_certificat_pdf.png}
+\caption{Apprenant~: email de félicitations et certificat de compétence (PDF).}
+\label{fig:app-cert}
+\end{figure}
+
+\subsection{Interface du formateur}
+L'interface du formateur, accessible après validation de sa candidature, permet de produire et d'animer les contenus~: tableau de bord de suivi, création de cours (vidéo + PDF), programmation et animation des sessions live, création d'évaluations et de QCM, et suivi des apprenants. Les figures~\ref{fig:form1}, \ref{fig:form2} et~\ref{fig:form3} ci-dessous en présentent les écrans.
+
+\begin{figure}[H]
+\centering
+\includegraphics[height=6cm,keepaspectratio]{capture_formateur_dashboard.png}\hfill
+\includegraphics[height=6cm,keepaspectratio]{capture_formateur_cours.png}\hfill
+\includegraphics[height=6cm,keepaspectratio]{capture_formateur_sessions.png}
+\caption{Formateur~: tableau de bord, création de cours et liste des sessions live.}
+\label{fig:form1}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[height=6cm,keepaspectratio]{capture_formateur_session.png}\hfill
+\includegraphics[height=6cm,keepaspectratio]{capture_formateur_evaluation.png}\hfill
+\includegraphics[height=6cm,keepaspectratio]{capture_formateur_qcm_liste.png}
+\caption{Formateur~: programmation d'une session, création d'une évaluation et gestion des QCM.}
+\label{fig:form2}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[height=6cm,keepaspectratio]{capture_formateur_qcm_creation.png}\hspace{1cm}
+\includegraphics[height=6cm,keepaspectratio]{capture_formateur_apprenants.png}
+\caption{Formateur~: création d'un QCM et suivi des apprenants.}
+\label{fig:form3}
+\end{figure}
+
+\subsection{Interface de l'administrateur}
+L'interface de l'administrateur offre les outils de supervision~: tableau de bord d'indicateurs, validation des candidatures, gestion des utilisateurs (consultation, suspension, réinitialisation de mot de passe), modération des cours et gestion des certificats (émission, révocation). Les actions sensibles déclenchent des notifications par email. Les figures~\ref{fig:admin1}, \ref{fig:admin2} et~\ref{fig:admin3} ci-dessous en présentent les écrans.
+
+\begin{figure}[H]
+\centering
+\includegraphics[height=6cm,keepaspectratio]{capture_admin_dashboard.png}\hfill
+\includegraphics[height=6cm,keepaspectratio]{capture_admin_candidatures.png}\hfill
+\includegraphics[height=6cm,keepaspectratio]{capture_admin_utilisateurs.png}
+\caption{Administrateur~: tableau de bord, candidatures et liste des utilisateurs.}
+\label{fig:admin1}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[height=6cm,keepaspectratio]{capture_admin_utilisateur_detail.png}\hfill
+\includegraphics[height=6cm,keepaspectratio]{capture_admin_moderation.png}\hfill
+\includegraphics[height=6cm,keepaspectratio]{capture_certificats.png}
+\caption{Administrateur~: fiche utilisateur, modération des cours et gestion des certificats.}
+\label{fig:admin2}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[height=6cm,keepaspectratio]{capture_email_motdepasse.png}
+\caption{Notification par email~: réinitialisation du mot de passe.}
+\label{fig:admin3}
+\end{figure}
+
+\subsection{Aspects techniques notables}
+Au-delà des interfaces, la fiabilité de la plateforme repose sur plusieurs mécanismes techniques clés. La sécurisation des sessions live en est un bon exemple~: pour rejoindre un canal de diffusion, chaque participant doit présenter un jeton temporaire généré côté serveur, ce qui empêche tout accès non autorisé. Le listing~\ref{lst:agora} ci-dessous présente la méthode de génération de ce jeton.
+
+\begin{lstlisting}[language=Java, caption={Génération du token Agora côté serveur.}, label={lst:agora}]
+public String generateToken(String channelName, long uid, Role role) {
+    RtcTokenBuilder2 builder = new RtcTokenBuilder2();
+    int expireTs = (int)(System.currentTimeMillis() / 1000) + 900; // 15 min
+    return builder.buildTokenWithUid(appId, appCertificate, channelName,
+            (int) uid, role == Role.HOST ? Role_Publisher : Role_Subscriber,
+            expireTs, expireTs);
+}
+\end{lstlisting}
+
+Le jeton ainsi généré n'est valable que quinze minutes et précise le rôle du participant (animateur ou spectateur), conformément aux règles d'accès aux sessions live définies lors de la conception.
+
+\section{Discussion}
+Les résultats obtenus confirment que le produit minimum viable répond aux objectifs fixés lors de l'analyse des besoins. L'ensemble des fonctionnalités essentielles est opérationnel pour les trois rôles~: l'apprenant dispose d'un parcours complet (cours, cursus, sessions live, abonnement et certification), le formateur d'outils de production et d'animation, et l'administrateur d'un véritable centre de supervision. La plateforme matérialise ainsi le \og double cursus \fg{} qui constitue sa proposition de valeur centrale et que l'état de l'art avait identifié comme absent des solutions concurrentes~: la combinaison d'un apprentissage autonome ludique et d'un encadrement humain par des formateurs certifiés.
+
+Plusieurs choix se révèlent particulièrement pertinents au vu des résultats. L'architecture en couches et la gestion des rôles ont permis de cloisonner clairement les responsabilités, ce qui facilite la maintenance et l'évolution du système. L'adoption du \gls{mobilemoney} comme moyen de paiement répond concrètement à la contrainte d'inclusion financière propre au contexte africain. Enfin, la délivrance d'un certificat signé en fin de parcours apporte la reconnaissance officielle qui manque à la plupart des applications grand public.
+
+Le travail présente néanmoins des limites qu'il convient d'assumer. Le périmètre actuel se concentre sur une seule langue (l'allemand), retenue comme pilote~; la validation à grande échelle du caractère multilingue reste à mener. Sur le plan technique, certains services reposent sur des prestataires externes (streaming, paiement, envoi d'emails), ce qui introduit une dépendance et des coûts à maîtriser. De plus, la couverture par des tests automatisés demeure partielle, et le tuteur IA, bien qu'opérationnel, gagnerait à être évalué de manière plus systématique sur la qualité pédagogique de ses explications.
+
+Ces constats ne remettent pas en cause la validité de l'approche~; ils en délimitent le cadre actuel et ouvrent naturellement sur les perspectives d'évolution détaillées dans la section suivante.
+
+\section{Plan de la suite des travaux}
+Le produit actuel valide l'approche sur l'allemand, retenu comme langue pilote. Plusieurs axes d'évolution ont été identifiés et planifiés dans le temps.
+
+À \textbf{court terme} (1 à 3 mois), l'effort portera sur la consolidation technique~: migration de la base de données vers PostgreSQL pour supporter la montée en charge, déploiement en production sur les magasins d'applications iOS et Android, et ajout de l'authentification via des fournisseurs tiers (Google, Apple).
+
+À \textbf{moyen terme} (3 à 6 mois), l'objectif majeur est l'\textbf{ouverture à de nouvelles langues}. L'architecture ayant été conçue dès l'origine pour être multilingue — l'écran d'accueil annonce d'ailleurs déjà plusieurs langues —, l'application a vocation à proposer, au-delà de l'allemand, l'\textbf{anglais}, l'\textbf{espagnol} et le \textbf{chinois}. Chaque langue disposera de son propre catalogue de cours, de ses formateurs certifiés et de cursus alignés sur le \ac{cecrl} (ou le référentiel équivalent pour les langues non européennes, comme le HSK pour le chinois). Cette étape s'accompagnera d'un enrichissement du cursus ludique et d'une amélioration continue du tuteur IA.
+
+À \textbf{long terme} (6 à 12 mois), le projet vise des partenariats institutionnels (Goethe-Institut, DAAD\glsadd{daad}, Alliance française, instituts Confucius et Cervantes), l'intégration de la reconnaissance vocale par IA pour évaluer la prononciation, ainsi que l'organisation de séjours linguistiques, faisant de SprachReise une véritable passerelle vers la mobilité internationale.
+
+% =========================================================
+\chapter*{Conclusion}
+\addcontentsline{toc}{chapter}{Conclusion}
+% =========================================================
+Ce travail a présenté la conception et la réalisation de \textbf{SprachReise}, une plateforme mobile d'apprentissage des langues partant d'un constat à la fois social et humain~: une demande croissante face à une offre insuffisante et inadaptée. L'état de l'art a démontré, sur des critères objectifs, qu'aucune solution existante ne répondait pleinement à ce besoin. La méthodologie a conduit, par une analyse rigoureuse et une conception UML, à une architecture en couches claire et extensible. L'implémentation a enfin concrétisé ces choix sur une pile technologique moderne et maîtrisable.
+
+Le produit minimum viable obtenu valide la pertinence de l'approche et ouvre la voie à un déploiement réel, ainsi qu'à une extension naturelle vers d'autres langues — anglais, espagnol et chinois notamment — grâce à une architecture pensée pour le multilinguisme. Au-delà de la prouesse technique, SprachReise porte une ambition~: faire tomber la barrière de la langue qui prive tant de jeunes talents africains d'opportunités, et transformer chaque « projet recalé » en réussite. C'est cette finalité qui justifie et guide l'implémentation de notre solution.
+
+% =========================================================
+\chapter*{Annexe}
+\addcontentsline{toc}{chapter}{Annexe}
+% =========================================================
+Les annexes regroupent les éléments complémentaires au rapport.
+
+\subsection*{Annexe A — Liste des règles de gestion}
+Le tableau~\ref{tab:annexe-rg} ci-dessous récapitule l'ensemble des règles de gestion qui encadrent le fonctionnement de SprachReise.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Liste complète des règles de gestion.}
+\label{tab:annexe-rg}
+\begin{tabularx}{\linewidth}{l X}
+\toprule
+\textbf{Code} & \textbf{Règle de gestion} \\
+\midrule
+RG1 & Un utilisateur possède un et un seul rôle~: Apprenant, Formateur ou Administrateur. \\
+RG2 & L'adresse email est unique et doit être vérifiée avant l'activation du compte. \\
+RG3 & Le mot de passe respecte une politique minimale de longueur et de complexité. \\
+RG4 & Un apprenant ne possède qu'un seul abonnement actif à la fois. \\
+RG5 & La souscription à un abonnement n'est effective qu'après un paiement réussi. \\
+RG6 & Après plusieurs échecs de paiement consécutifs, l'abonnement passe à l'état inactif. \\
+RG7 & Un abonnement expiré ne donne plus qu'un accès en lecture seule à l'historique. \\
+RG8 & Une candidature de formateur exige le dépôt d'au moins un diplôme et est validée par l'administrateur. \\
+RG9 & Une candidature suit les statuts~: En attente → Approuvée / Refusée / Suspendue. \\
+RG10 & Un formateur est rattaché à un seul niveau CECRL et n'enseigne que pour ce niveau. \\
+RG11 & Le nombre d'apprenants suivis par un formateur ne peut dépasser le quota fixé par l'administrateur. \\
+RG12 & Tout cours publié comporte obligatoirement une vidéo \emph{et} un support PDF. \\
+RG13 & Le niveau d'un cours correspond à celui du formateur qui le crée. \\
+RG14 & L'accès aux fonctionnalités dépend du palier d'abonnement souscrit. \\
+RG15 & Une session live requiert le palier adéquat~; le jeton d'accès au canal est temporaire (15 minutes). \\
+RG16 & Un QCM comporte un nombre défini de questions~; l'apprenant peut le repasser, l'historique étant conservé. \\
+RG17 & Un certificat n'est délivré qu'après validation des critères du niveau. \\
+RG18 & Le certificat est émis uniquement par l'administrateur et porte une signature et un hash uniques. \\
+RG19 & Le tuteur IA fournit une aide à la compréhension sans délivrer de note ni de certificat officiel. \\
+RG20 & Toute action sensible (validation, suspension, retrait, révocation) est tracée dans un journal d'audit. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection*{Annexe B — Maquettes et écrans secondaires}
+Les écrans principaux des trois interfaces (apprenant, formateur, administrateur) sont présentés au chapitre~\ref{chap:impl}. Cette annexe est destinée à regrouper les écrans secondaires non détaillés dans le corps du rapport (par exemple~: lecteur vidéo, détail d'un cours, paramètres du compte, notifications, écran de certificat). Pour insérer une maquette, copiez le modèle suivant en remplaçant le nom du fichier et la légende~:
+
+% \begin{figure}[H]
+% \centering
+% \includegraphics[width=0.40\linewidth,keepaspectratio]{capture_secondaire.png}
+% \caption{Écran secondaire : ...}
+% \end{figure}
+
+\subsection*{Annexe C — Schéma de la base de données}
+Le tableau~\ref{tab:annexe-bd} ci-dessous récapitule les principales tables de la base de données et leur rôle.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Principales tables de la base de données de l'application.}
+\label{tab:annexe-bd}
+\begin{tabularx}{\linewidth}{l X}
+\toprule
+\textbf{Table} & \textbf{Rôle / contenu} \\
+\midrule
+utilisateurs & Comptes et profils (email, mot de passe haché, rôle, informations personnelles). \\
+langues & Langues proposées par la plateforme (code, nom, activation). \\
+niveaux & Niveaux CECRL (A1 à C2) et leur ordre. \\
+candidatures\_formateur & Demandes de statut formateur, diplôme déposé et statut de traitement. \\
+profils\_formateur & Données propres aux formateurs (niveau assigné, quota, note moyenne). \\
+invitations\_formateur & Invitations à rejoindre la plateforme en tant que formateur. \\
+cours & Cours publiés (titre, thème, vidéo, PDF, statut, vues). \\
+articles & Ressources textuelles complémentaires de la bibliothèque. \\
+sessions\_live & Sessions de streaming (date, durée, canal, enregistrement). \\
+participations\_session & Présence des apprenants aux sessions (association). \\
+paliers\_abonnement & Paliers proposés (code, nom, prix, fonctionnalités). \\
+abonnements & Abonnements des apprenants (statut, dates, renouvellement). \\
+paiements & Transactions de paiement (montant, méthode, statut). \\
+qcm / questions\_qcm / choix\_qcm & Questionnaires, questions et propositions de réponse. \\
+tentatives\_qcm & Résultats des QCM passés par les apprenants. \\
+progressions & Suivi de progression et critères de certification par apprenant. \\
+certificats & Certificats émis (numéro, hash, signature, statut). \\
+messages & Échanges de messagerie entre apprenants et formateurs. \\
+interactions\_ia & Échanges avec le tuteur IA (question, réponse, contexte). \\
+journal\_audit & Traçabilité des actions sensibles (qui, quoi, quand). \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =========================================================
+%  WEBOGRAPHIE
+% =========================================================
+\chapter*{Webographie}
+\addcontentsline{toc}{chapter}{Webographie}
+\begin{enumerate}[label={[W\arabic*]}, leftmargin=*, itemsep=4pt]
+\item Meta Platforms, \textit{React Native Documentation}, 2024. [En ligne]. Disponible~: \url{https://reactnative.dev/}
+\item Expo, \textit{Expo Documentation}, 2024. [En ligne]. Disponible~: \url{https://docs.expo.dev/}
+\item OpenJS Foundation, \textit{Node.js Documentation}, 2024. [En ligne]. Disponible~: \url{https://nodejs.org/en/docs}
+\item VMware / Spring, \textit{Spring Boot Reference Documentation}, 2024. [En ligne]. Disponible~: \url{https://docs.spring.io/spring-boot/}
+\item PostgreSQL Global Development Group, \textit{PostgreSQL Documentation}, 2024. [En ligne]. Disponible~: \url{https://www.postgresql.org/docs/}
+\item SQLite, \textit{SQLite Documentation}, 2024. [En ligne]. Disponible~: \url{https://www.sqlite.org/docs.html}
+\item Auth0, \textit{Introduction to JSON Web Tokens}, 2024. [En ligne]. Disponible~: \url{https://jwt.io/introduction}
+\item Agora Inc., \textit{Agora Real-Time Voice and Video SDK Documentation}, 2024. [En ligne]. Disponible~: \url{https://docs.agora.io/}
+\item Stripe, \textit{Stripe API and Payments Documentation}, 2024. [En ligne]. Disponible~: \url{https://docs.stripe.com/}
+\item MTN, \textit{MTN MoMo Developer Portal}, 2024. [En ligne]. Disponible~: \url{https://momodeveloper.mtn.com/}
+\item Conseil de l'Europe, \textit{Cadre européen commun de référence pour les langues}, 2024. [En ligne]. Disponible~: \url{https://www.coe.int/fr/web/common-european-framework-reference-languages}
+\item Goethe-Institut, \textit{Apprendre l'allemand}, 2024. [En ligne]. Disponible~: \url{https://www.goethe.de/}
+\end{enumerate}
+
+% =========================================================
+%  BIBLIOGRAPHIE
+% =========================================================
+\printbibliography[heading=bibintoc, title={Références et bibliographies}]
+
+% =========================================================
+%  TABLE DES MATIÈRES DÉTAILLÉE
+% =========================================================
+\renewcommand{\contentsname}{Table des matières}
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\end{document}
