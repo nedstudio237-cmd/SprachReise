@@ -40,12 +40,13 @@ public class SignalingWebSocketHandler extends TextWebSocketHandler {
         if (type == null) return;
 
         switch (type) {
-            case "join"       -> handleJoin(session, msg);
-            case "offer"      -> handleRoute(session, msg);
-            case "answer"     -> handleRoute(session, msg);
-            case "ice"        -> handleRoute(session, msg);
-            case "mute-state" -> handleMuteState(session, msg);
-            case "leave"      -> doLeave(session);
+            case "join"        -> handleJoin(session, msg);
+            case "offer"       -> handleRoute(session, msg);
+            case "answer"      -> handleRoute(session, msg);
+            case "ice"         -> handleRoute(session, msg);
+            case "mute-state"  -> handleMuteState(session, msg);
+            case "audio-relay" -> handleAudioRelay(session, msg);
+            case "leave"       -> doLeave(session);
         }
     }
 
@@ -99,6 +100,15 @@ public class SignalingWebSocketHandler extends TextWebSocketHandler {
         if (target != null && target.isOpen()) {
             target.sendMessage(new TextMessage(mapper.writeValueAsString(msg)));
         }
+    }
+
+    // ── Relay audio (chunks base64) ───────────────────────────────────────────
+    private void handleAudioRelay(WebSocketSession session, Map<String, Object> msg) throws IOException {
+        String[] meta = sessionMeta.get(session.getId());
+        if (meta == null) return;
+        Map<String, Object> enriched = new HashMap<>(msg);
+        enriched.put("peerId", meta[0]);
+        broadcast(meta[1], meta[0], enriched);
     }
 
     // ── Diffuser l'état mute/caméra ──────────────────────────────────────────
