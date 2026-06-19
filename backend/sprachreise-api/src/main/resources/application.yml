@@ -4,9 +4,11 @@ server:
 spring:
   application:
     name: sprachreise-api
+  profiles:
+    active: local
 
   datasource:
-    url: jdbc:mysql://localhost:3306/sprachreise?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/sprachreise?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&useUnicode=true
     username: root
     password: ""
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -27,8 +29,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME:sprachreise@gmail.com}
-    password: ${MAIL_PASSWORD:your-app-password}
+    username: ${MAIL_USERNAME:nedstudio237@gmail.com}
+    password: ${MAIL_PASSWORD:}
     properties:
       mail:
         smtp:
@@ -52,17 +54,31 @@ agora:
   app-id: ${AGORA_APP_ID:your-agora-app-id}
   app-certificate: ${AGORA_APP_CERTIFICATE:your-agora-app-certificate}
 
+# CamPay (Orange Money + MTN Money - Cameroun)
+campay:
+  api-key: ${CAMPAY_API_KEY:campay_test_placeholder}
+  app-username: ${CAMPAY_USERNAME:campay_user}
+  base-url: https://demo.campay.net/api
+
 # Stripe Configuration
 stripe:
   secret-key: ${STRIPE_SECRET_KEY:sk_test_your-stripe-secret-key}
+  publishable-key: ${STRIPE_PUBLISHABLE_KEY:pk_test_your-stripe-publishable-key}
   webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_your-webhook-secret}
 
 # Storage
 storage:
   upload-dir: ${STORAGE_PATH:C:/xampp/htdocs/SprachReise/storage}
 
+# Anthropic Claude AI — clé dans application-local.yml (non versionné) ou variable d'env
+anthropic:
+  api:
+    key: ${ANTHROPIC_API_KEY:}
+
 # Logging
 logging:
   level:
     com.sprachreise: DEBUG
-    org.springframework.security: INFO
+    org.springframework.security: DEBUG
+    "[org.springframework.web]": DEBUG
+    "[org.apache.tomcat]": DEBUG

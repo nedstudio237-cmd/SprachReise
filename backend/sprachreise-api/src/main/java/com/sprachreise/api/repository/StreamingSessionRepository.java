@@ -1,0 +1,24 @@
+package com.sprachreise.api.repository;
+
+import com.sprachreise.api.entity.StreamingSession;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
+
+public interface StreamingSessionRepository extends JpaRepository<StreamingSession, Long> {
+
+    @Query("SELECT s FROM StreamingSession s WHERE s.status IN ('SCHEDULED','LIVE') ORDER BY s.scheduledStart ASC")
+    List<StreamingSession> findUpcomingAndLive();
+
+    @Query("SELECT s FROM StreamingSession s WHERE s.levelId = :levelId ORDER BY s.scheduledStart DESC")
+    List<StreamingSession> findByLevelId(Long levelId);
+
+    @Query("SELECT s FROM StreamingSession s WHERE s.trainer.id = :trainerId AND s.status IN ('SCHEDULED','LIVE') ORDER BY s.scheduledStart ASC")
+    List<StreamingSession> findUpcomingByTrainerId(Long trainerId);
+
+    List<StreamingSession> findByTrainerIdOrderByScheduledStartDesc(Long trainerId);
+
+    @Query("SELECT s FROM StreamingSession s WHERE s.trainer.id = :trainerId ORDER BY s.scheduledStart DESC")
+    List<StreamingSession> findAllByTrainerId(Long trainerId);
+}

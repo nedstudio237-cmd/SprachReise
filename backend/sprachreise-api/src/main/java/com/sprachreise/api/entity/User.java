@@ -51,6 +51,34 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "level_code")
+    private String levelCode = "A1"; // CECRL level for learner
+
+    @Column(name = "assigned_trainer_id")
+    private Long assignedTrainerId;
+
+    // ── Abonnement ────────────────────────────────────────────────────────────
+    @Column(name = "subscription_plan")
+    private String subscriptionPlan = "TRIAL"; // TRIAL, BASIC, STANDARD, PREMIUM, EXPIRED
+
+    @Column(name = "subscription_status")
+    private String subscriptionStatus = "TRIAL"; // TRIAL, ACTIVE, EXPIRED, CANCELLED
+
+    @Column(name = "trial_ends_at")
+    private LocalDateTime trialEndsAt;
+
+    @Column(name = "subscription_starts_at")
+    private LocalDateTime subscriptionStartsAt;
+
+    @Column(name = "subscription_ends_at")
+    private LocalDateTime subscriptionEndsAt;
+
+    @Column(name = "reminder_5d_sent")
+    private Boolean reminder5dSent = false;
+
+    @Column(name = "reminder_0d_sent")
+    private Boolean reminder0dSent = false;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -104,4 +132,31 @@ public class User {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
+
+    public String getLevelCode() { return levelCode; }
+    public void setLevelCode(String levelCode) { this.levelCode = levelCode; }
+
+    public Long getAssignedTrainerId() { return assignedTrainerId; }
+    public void setAssignedTrainerId(Long assignedTrainerId) { this.assignedTrainerId = assignedTrainerId; }
+
+    public String getSubscriptionPlan() { return subscriptionPlan; }
+    public void setSubscriptionPlan(String subscriptionPlan) { this.subscriptionPlan = subscriptionPlan; }
+
+    public String getSubscriptionStatus() { return subscriptionStatus; }
+    public void setSubscriptionStatus(String subscriptionStatus) { this.subscriptionStatus = subscriptionStatus; }
+
+    public LocalDateTime getTrialEndsAt() { return trialEndsAt; }
+    public void setTrialEndsAt(LocalDateTime trialEndsAt) { this.trialEndsAt = trialEndsAt; }
+
+    public LocalDateTime getSubscriptionStartsAt() { return subscriptionStartsAt; }
+    public void setSubscriptionStartsAt(LocalDateTime v) { this.subscriptionStartsAt = v; }
+
+    public LocalDateTime getSubscriptionEndsAt() { return subscriptionEndsAt; }
+    public void setSubscriptionEndsAt(LocalDateTime v) { this.subscriptionEndsAt = v; }
+
+    public Boolean getReminder5dSent() { return reminder5dSent; }
+    public void setReminder5dSent(Boolean v) { this.reminder5dSent = v; }
+
+    public Boolean getReminder0dSent() { return reminder0dSent; }
+    public void setReminder0dSent(Boolean v) { this.reminder0dSent = v; }
 }
